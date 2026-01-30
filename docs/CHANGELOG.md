@@ -2,12 +2,17 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
-## Unreleased
+## [0.16.0] - 2026-01-30
 
 ### Changed
 - Migrate all file operations to WordPress WP_Filesystem API for Plugin Check compliance
 - Add centralized FilesystemHelper for filesystem initialization
 - Remove forbidden fallback pattern in RemoteFileDownloader
+- Modularize FlowAbilities and FlowStepAbilities into focused ability classes with shared helper traits
+- Add explicit selection modes to configure_flow_steps: flow_step_ids array, global handler scope, all_flows opt-in
+
+### Fixed
+- Fix configure_flow_steps bulk mode to require explicit opt-in (prevents accidental pipeline-wide updates)
 
 ## [0.15.2] - 2026-01-28
 

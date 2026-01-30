@@ -26,10 +26,10 @@ class DirectoryManager {
 	/**
 	 * Get pipeline directory path
 	 *
-	 * @param int $pipeline_id Pipeline ID
+	 * @param int|string $pipeline_id Pipeline ID or 'direct' for direct execution
 	 * @return string Full path to pipeline directory
 	 */
-	public function get_pipeline_directory( int $pipeline_id ): string {
+	public function get_pipeline_directory( int|string $pipeline_id ): string {
 		$upload_dir = wp_upload_dir();
 		$base       = trailingslashit( $upload_dir['basedir'] ) . self::REPOSITORY_DIR;
 		return "{$base}/pipeline-{$pipeline_id}";
@@ -38,11 +38,11 @@ class DirectoryManager {
 	/**
 	 * Get flow directory path
 	 *
-	 * @param int $pipeline_id Pipeline ID
-	 * @param int $flow_id Flow ID
+	 * @param int|string $pipeline_id Pipeline ID or 'direct' for direct execution
+	 * @param int|string $flow_id Flow ID or 'direct' for direct execution
 	 * @return string Full path to flow directory
 	 */
-	public function get_flow_directory( int $pipeline_id, int $flow_id ): string {
+	public function get_flow_directory( int|string $pipeline_id, int|string $flow_id ): string {
 		$pipeline_dir = $this->get_pipeline_directory( $pipeline_id );
 		return "{$pipeline_dir}/flow-{$flow_id}";
 	}
@@ -50,12 +50,12 @@ class DirectoryManager {
 	/**
 	 * Get job directory path
 	 *
-	 * @param int $pipeline_id Pipeline ID
-	 * @param int $flow_id Flow ID
-	 * @param int $job_id Job ID
+	 * @param int|string $pipeline_id Pipeline ID or 'direct' for direct execution
+	 * @param int|string $flow_id Flow ID or 'direct' for direct execution
+	 * @param int|string $job_id Job ID
 	 * @return string Full path to job directory
 	 */
-	public function get_job_directory( int $pipeline_id, int $flow_id, int $job_id ): string {
+	public function get_job_directory( int|string $pipeline_id, int|string $flow_id, int|string $job_id ): string {
 		$flow_dir = $this->get_flow_directory( $pipeline_id, $flow_id );
 		return "{$flow_dir}/jobs/job-{$job_id}";
 	}
@@ -63,11 +63,11 @@ class DirectoryManager {
 	/**
 	 * Get flow files directory path
 	 *
-	 * @param int $pipeline_id Pipeline ID
-	 * @param int $flow_id Flow ID
+	 * @param int|string $pipeline_id Pipeline ID or 'direct' for direct execution
+	 * @param int|string $flow_id Flow ID or 'direct' for direct execution
 	 * @return string Full path to flow files directory
 	 */
-	public function get_flow_files_directory( int $pipeline_id, int $flow_id ): string {
+	public function get_flow_files_directory( int|string $pipeline_id, int|string $flow_id ): string {
 		$flow_dir = $this->get_flow_directory( $pipeline_id, $flow_id );
 		return "{$flow_dir}/flow-{$flow_id}-files";
 	}
@@ -75,11 +75,11 @@ class DirectoryManager {
 	/**
 	 * Get pipeline context directory path
 	 *
-	 * @param int    $pipeline_id Pipeline ID
-	 * @param string $pipeline_name Pipeline name (unused, for signature compatibility)
+	 * @param int|string $pipeline_id Pipeline ID or 'direct' for direct execution
+	 * @param string     $pipeline_name Pipeline name (unused, for signature compatibility)
 	 * @return string Full path to pipeline context directory
 	 */
-	public function get_pipeline_context_directory( int $pipeline_id, string $pipeline_name ): string {
+	public function get_pipeline_context_directory( int|string $pipeline_id, string $pipeline_name ): string {
 		$pipeline_dir = $this->get_pipeline_directory( $pipeline_id );
 		return "{$pipeline_dir}/context";
 	}

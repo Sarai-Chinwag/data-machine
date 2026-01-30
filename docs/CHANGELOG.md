@@ -2,6 +2,11 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## Unreleased
+
+### Fixed
+- Update DirectoryManager type hints to support direct execution mode (int|string for pipeline/flow IDs)
+
 ## [0.16.0] - 2026-01-30
 
 ### Changed

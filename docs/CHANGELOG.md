@@ -2,7 +2,7 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
-## Unreleased
+## [0.16.2] - 2026-02-01
 
 - Bump ai-http-client to v2.0.13
 

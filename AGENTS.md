@@ -51,8 +51,11 @@ Agent guidance (for automated editors)
 - Make minimal, targeted documentation edits; preserve accurate content and explain assumptions in changelogs.
 - Use present-tense language and remove references to deleted functionality or historical counts.
 - Do not modify source code when aligning documentation unless explicitly authorized.
-
 - Do not create new top-level documentation directories. Creating or updating `.md` files is allowed only within existing directories.
+
+Design principles
+
+- **Agent Agnosticism**: Data Machine is agnostic to which agent framework handles triggered prompts. Agent Ping sends webhooks with context — it does not hardcode assumptions about OpenClaw, LangChain, or any specific agent runtime. Whatever listens on the webhook URL handles the prompt. This keeps the plugin portable and framework-independent.
 
 Where to find more
 

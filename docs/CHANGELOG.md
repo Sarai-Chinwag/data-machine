@@ -2,6 +2,14 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [0.18.0] - 2026-02-01
+
+### Added
+- add CLI CRUD commands for pipelines (#33)
+
+### Changed
+- modularize abilities files for maintainability (#34)
+
 ## [0.17.0] - 2026-02-01
 
 ### Added

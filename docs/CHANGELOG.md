@@ -2,6 +2,16 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [0.18.5] - 2026-02-01
+
+### Changed
+- Merge pull request #51 from saraichinwag/fix/queue-modal-from-step
+- Merge pull request #50 from saraichinwag/fix/remove-footer-queue
+
+### Fixed
+- open queue modal from step card button
+- remove queue button from flow footer
+
 ## [0.18.4] - 2026-02-01
 
 ### Changed

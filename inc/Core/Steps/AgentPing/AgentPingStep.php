@@ -116,6 +116,8 @@ class AgentPingStep extends Step {
 
 		$webhook_url       = trim( $handler_config['webhook_url'] ?? '' );
 		$configured_prompt = $handler_config['prompt'] ?? '';
+		$auth_header_name  = $handler_config['auth_header_name'] ?? '';
+		$auth_token        = $handler_config['auth_token'] ?? '';
 		$data_packets      = $this->dataPackets;
 		$queue_enabled     = (bool) ( $this->flow_step_config['queue_enabled'] ?? false );
 		$prompt_queue      = $this->flow_step_config['prompt_queue'] ?? array();
@@ -146,14 +148,16 @@ class AgentPingStep extends Step {
 		} else {
 			$result = $ability->execute(
 				array(
-					'webhook_url'  => $webhook_url,
-					'prompt'       => $prompt,
-					'from_queue'   => $from_queue,
-					'data_packets' => $data_packets,
-					'engine_data'  => $this->engine->all(),
-					'flow_id'      => $this->engine->get( 'flow_id' ),
-					'pipeline_id'  => $this->engine->get( 'pipeline_id' ),
-					'job_id'       => $this->job_id,
+					'webhook_url'      => $webhook_url,
+					'prompt'           => $prompt,
+					'from_queue'       => $from_queue,
+					'data_packets'     => $data_packets,
+					'engine_data'      => $this->engine->all(),
+					'flow_id'          => $this->engine->get( 'flow_id' ),
+					'pipeline_id'      => $this->engine->get( 'pipeline_id' ),
+					'job_id'           => $this->job_id,
+					'auth_header_name' => $auth_header_name,
+					'auth_token'       => $auth_token,
 				)
 			);
 

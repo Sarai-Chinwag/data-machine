@@ -17,6 +17,7 @@ export default function FlowStepHandler( {
 	handlerSlug,
 	settingsDisplay,
 	onConfigure,
+	showConfigureButton = true,
 } ) {
 	const { data: handlers = {} } = useHandlers();
 	const { data: stepTypes = {} } = useStepTypes();
@@ -78,9 +79,11 @@ export default function FlowStepHandler( {
 				</div>
 			) }
 
-			<Button variant="secondary" size="small" onClick={ onConfigure }>
-				{ __( 'Configure', 'data-machine' ) }
-			</Button>
+			{ showConfigureButton && (
+				<Button variant="secondary" size="small" onClick={ onConfigure }>
+					{ __( 'Configure', 'data-machine' ) }
+				</Button>
+			) }
 		</div>
 	);
 }

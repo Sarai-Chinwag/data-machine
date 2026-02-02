@@ -46,6 +46,8 @@ export default function FlowStepCard( {
 	// Global config: Use stepTypes hook directly (TanStack Query handles caching)
 	const { data: stepTypes = {} } = useStepTypes();
 	const stepTypeInfo = stepTypes[ pipelineStep.step_type ] || {};
+	const showSettingsDisplay =
+		stepTypeInfo.show_settings_display !== false;
 	const isAiStep = pipelineStep.step_type === 'ai';
 	const isAgentPing = pipelineStep.step_type === 'agent_ping';
 	const aiConfig = isAiStep
@@ -490,49 +492,47 @@ export default function FlowStepCard( {
 				) }
 
 				{ /* Handler Configuration */ }
-					{ ( () => {
-						const handlerStepTypeInfo =
-							stepTypes[ pipelineStep.step_type ] || {};
-						// Falsy check: PHP false becomes "" in JSON, but undefined means still loading
-						const usesHandler =
-							handlerStepTypeInfo.uses_handler !== '' &&
-							handlerStepTypeInfo.uses_handler !== false;
+				{ showSettingsDisplay && ( () => {
+					const handlerStepTypeInfo =
+						stepTypes[ pipelineStep.step_type ] || {};
+					// Falsy check: PHP false becomes "" in JSON, but undefined means still loading
+					const usesHandler =
+						handlerStepTypeInfo.uses_handler !== '' &&
+						handlerStepTypeInfo.uses_handler !== false;
 
-						// For steps that don't use handlers (e.g., agent_ping),
-						// use the step_type as the effective handler slug for settings display
-						const effectiveHandlerSlug = usesHandler
-							? flowStepConfig.handler_slug
-							: pipelineStep.step_type;
+					// For steps that don't use handlers, use the step_type as the effective handler slug
+					const effectiveHandlerSlug = usesHandler
+						? flowStepConfig.handler_slug
+						: pipelineStep.step_type;
 
-						// Handler-based step with no handler configured - show configure button
-						if ( usesHandler && ! flowStepConfig.handler_slug ) {
-							return (
-								<FlowStepHandler
-									handlerSlug={ null }
-									settingsDisplay={ [] }
-									onConfigure={ () =>
-										onConfigure && onConfigure( flowStepId )
-									}
-								/>
-							);
-						}
-
-						// Show settings display (works for both handler steps and non-handler steps like agent_ping)
-						// Non-handler steps don't need Configure button or badge (configured at pipeline level)
+					// Handler-based step with no handler configured - show configure button
+					if ( usesHandler && ! flowStepConfig.handler_slug ) {
 						return (
 							<FlowStepHandler
-								handlerSlug={ effectiveHandlerSlug }
-								settingsDisplay={
-									flowStepConfig.settings_display || []
-								}
+								handlerSlug={ null }
+								settingsDisplay={ [] }
 								onConfigure={ () =>
 									onConfigure && onConfigure( flowStepId )
 								}
-								showConfigureButton={ usesHandler }
-								showBadge={ usesHandler }
 							/>
 						);
-					} )() }
+					}
+
+					// Show settings display
+					return (
+						<FlowStepHandler
+							handlerSlug={ effectiveHandlerSlug }
+							settingsDisplay={
+								flowStepConfig.settings_display || []
+							}
+							onConfigure={ () =>
+								onConfigure && onConfigure( flowStepId )
+							}
+							showConfigureButton={ usesHandler }
+							showBadge={ usesHandler }
+						/>
+					);
+				} )() }
 				</div>
 			</CardBody>
 		</Card>

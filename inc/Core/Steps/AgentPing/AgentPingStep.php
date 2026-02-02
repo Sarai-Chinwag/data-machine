@@ -48,7 +48,8 @@ class AgentPingStep extends Step {
 				'modal_type'  => 'configure-step',
 				'button_text' => 'Configure',
 				'label'       => 'Agent Ping Configuration',
-			)
+			),
+			showSettingsDisplay: false
 		);
 
 		self::registerStepSettings();

@@ -223,7 +223,6 @@ export const useUpdateSystemPrompt = () => {
 			enabledTools,
 			stepType,
 			pipelineId,
-			webhookUrl,
 		} ) =>
 			updateSystemPrompt(
 				stepId,
@@ -232,8 +231,7 @@ export const useUpdateSystemPrompt = () => {
 				model,
 				enabledTools,
 				stepType,
-				pipelineId,
-				webhookUrl
+				pipelineId
 			),
 		onSuccess: ( _, { pipelineId } ) => {
 			queryClient.invalidateQueries( { queryKey: [ 'pipelines' ] } );

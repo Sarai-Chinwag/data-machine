@@ -205,16 +205,15 @@ export const reorderPipelineSteps = async ( pipelineId, steps ) => {
 };
 
 /**
- * Update step configuration (AI or Agent Ping)
+ * Update AI step configuration
  *
  * @param {string}        stepId       - Pipeline step ID
- * @param {string}        prompt       - System prompt content (AI) or instructions (Agent Ping)
- * @param {string}        provider     - AI provider (AI steps only)
- * @param {string}        model        - AI model (AI steps only)
- * @param {Array<string>} enabledTools - Enabled AI tools (AI steps only)
- * @param {string}        stepType     - Step type ('ai' or 'agent_ping')
+ * @param {string}        prompt       - System prompt content
+ * @param {string}        provider     - AI provider
+ * @param {string}        model        - AI model
+ * @param {Array<string>} enabledTools - Enabled AI tools
+ * @param {string}        stepType     - Step type (currently only 'ai' supported)
  * @param {number}        pipelineId   - Pipeline ID for context
- * @param {string}        webhookUrl   - Webhook URL (Agent Ping steps only)
  * @return {Promise<Object>} Updated step data
  */
 export const updateSystemPrompt = async (
@@ -224,29 +223,16 @@ export const updateSystemPrompt = async (
 	model,
 	enabledTools = [],
 	stepType = 'ai',
-	pipelineId = null,
-	webhookUrl = null
+	pipelineId = null
 ) => {
 	const payload = {
 		step_type: stepType,
 		pipeline_id: pipelineId,
+		provider,
+		model,
+		system_prompt: prompt,
+		enabled_tools: enabledTools,
 	};
-
-	if ( stepType === 'agent_ping' ) {
-		// Agent Ping configuration
-		if ( webhookUrl !== null ) {
-			payload.webhook_url = webhookUrl;
-		}
-		if ( prompt !== null ) {
-			payload.prompt = prompt;
-		}
-	} else {
-		// AI step configuration
-		payload.provider = provider;
-		payload.model = model;
-		payload.system_prompt = prompt;
-		payload.enabled_tools = enabledTools;
-	}
 
 	return await client.put( `/pipelines/steps/${ stepId }/config`, payload );
 };

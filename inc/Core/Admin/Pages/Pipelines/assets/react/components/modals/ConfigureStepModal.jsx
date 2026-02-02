@@ -23,6 +23,7 @@ import { useFormState } from '../../hooks/useFormState';
  */
 import ProviderModelSelector from '@shared/components/ai/ProviderModelSelector';
 import AIToolsSelector from './configure-step/AIToolsSelector';
+import WebhookUrlField from '../shared/WebhookUrlField';
 
 /**
  * AI Step Configuration Content
@@ -98,49 +99,24 @@ function AIStepConfig( {
  * Agent Ping Step Configuration Content
  */
 function AgentPingConfig( { formState } ) {
-	/**
-	 * Validate URL format
-	 */
-	const isValidUrl = ( url ) => {
-		if ( ! url || ! url.trim() ) {
-			return true;
-		}
-		try {
-			const parsed = new URL( url );
-			return [ 'http:', 'https:' ].includes( parsed.protocol );
-		} catch {
-			return false;
-		}
-	};
-
-	const urlError =
-		formState.data.webhookUrl &&
-		! isValidUrl( formState.data.webhookUrl )
-			? __( 'Please enter a valid URL', 'data-machine' )
-			: null;
-
 	return (
 		<>
 			<div className="datamachine-form-field-wrapper">
-				<TextControl
-					label={ __( 'Webhook URL', 'data-machine' ) }
+				<WebhookUrlField
 					value={ formState.data.webhookUrl }
 					onChange={ ( value ) =>
 						formState.updateField( 'webhookUrl', value )
 					}
+					label={ __( 'Webhook URL', 'data-machine' ) }
 					placeholder={ __(
 						'https://discord.com/api/webhooks/...',
 						'data-machine'
 					) }
-					help={
-						urlError ||
-						__(
-							'URL to POST data to (Discord, Slack, custom endpoint)',
-							'data-machine'
-						)
-					}
-					type="url"
-					className={ urlError ? 'has-error' : '' }
+					help={ __(
+						'URL to POST data to (Discord, Slack, custom endpoint)',
+						'data-machine'
+					) }
+					required
 				/>
 			</div>
 

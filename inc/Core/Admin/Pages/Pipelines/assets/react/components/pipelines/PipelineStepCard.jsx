@@ -7,7 +7,7 @@
 /**
  * WordPress dependencies
  */
-import { useState, useCallback, useRef, useEffect } from '@wordpress/element';
+import { useCallback } from '@wordpress/element';
 import {
 	Card,
 	CardBody,
@@ -50,8 +50,6 @@ export default function PipelineStepCard( {
 	const isAgentPing = step.step_type === 'agent_ping';
 
 	const stepConfig = pipelineConfig[ step.pipeline_step_id ] || null;
-
-	const [ error, setError ] = useState( null );
 
 	/**
 	 * Save system prompt to API (AI steps)
@@ -120,16 +118,6 @@ export default function PipelineStepCard( {
 			size="small"
 		>
 			<CardBody>
-				{ error && (
-					<Notice
-						status="error"
-						isDismissible
-						onRemove={ () => setError( null ) }
-					>
-						{ error }
-					</Notice>
-				) }
-
 				<div className="datamachine-step-card-header">
 					<strong>
 						{ stepTypes[ step.step_type ]?.label || step.step_type }

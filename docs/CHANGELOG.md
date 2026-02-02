@@ -2,6 +2,14 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [0.19.3] - 2026-02-02
+
+### Changed
+- Merge pull request #55 from saraichinwag/fix/agent-ping-wp-error-handling
+
+### Fixed
+- fix(agent-ping): handle WP_Error from ability execution
+
 ## [0.19.2] - 2026-02-02
 
 ### Changed

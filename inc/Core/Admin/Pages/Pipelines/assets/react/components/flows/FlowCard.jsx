@@ -274,19 +274,6 @@ function FlowCardContent( props ) {
 	);
 
 	/**
-	 * Handle queue button click
-	 */
-	const handleQueue = useCallback( () => {
-		openModal( MODAL_TYPES.FLOW_QUEUE, {
-			flowId: currentFlowData.flow_id,
-			flowName: currentFlowData.flow_name,
-		} );
-	}, [ currentFlowData.flow_id, currentFlowData.flow_name, openModal ] );
-
-	// Compute queue count from flow config
-	const queueCount = currentFlowData.flow_config?.prompt_queue?.length || 0;
-
-	/**
 	 * Handle step configuration
 	 */
 	const handleStepConfigured = useCallback(
@@ -374,8 +361,6 @@ function FlowCardContent( props ) {
 						is_running: currentFlowData.is_running,
 						next_run_display: currentFlowData.next_run_display,
 					} }
-					queueCount={ queueCount }
-					onQueueClick={ handleQueue }
 				/>
 			</CardBody>
 		</Card>

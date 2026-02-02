@@ -62,15 +62,11 @@ const formatStatus = ( status ) => {
  * @param {string}   props.scheduling.last_run_status  - Job status from last run
  * @param {boolean}  props.scheduling.is_running       - Whether a job is currently running
  * @param {string}   props.scheduling.next_run_display - Pre-formatted next run display
- * @param {number}   props.queueCount                  - Number of prompts in queue
- * @param {Function} props.onQueueClick                - Handler for queue button click
  * @return {React.ReactElement} Flow footer
  */
 export default function FlowFooter( {
 	flowId,
 	scheduling,
-	queueCount = 0,
-	onQueueClick,
 } ) {
 	const {
 		interval,
@@ -125,26 +121,6 @@ export default function FlowFooter( {
 				</div>
 			) }
 
-			{ onQueueClick && (
-				<div className="datamachine-flow-meta-item datamachine-flow-meta-item--queue">
-					<Button
-						variant="link"
-						onClick={ onQueueClick }
-						className="datamachine-queue-badge"
-					>
-						{ __( 'Queue', 'data-machine' ) }{ ' ' }
-						<span
-							className={ `datamachine-queue-count ${
-								queueCount > 0
-									? 'datamachine-queue-count--active'
-									: ''
-							}` }
-						>
-							({ queueCount })
-						</span>
-					</Button>
-				</div>
-			) }
 		</div>
 	);
 }

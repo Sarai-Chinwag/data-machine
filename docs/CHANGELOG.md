@@ -2,6 +2,15 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [0.18.6] - 2026-02-01
+
+### Changed
+- Merge pull request #52 from saraichinwag/fix/restore-prompt-field
+
+### Fixed
+- use addToQueue when queue is empty
+- restore prompt field alongside queue modal button
+
 ## [0.18.5] - 2026-02-01
 
 ### Changed

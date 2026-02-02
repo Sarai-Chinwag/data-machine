@@ -165,7 +165,7 @@ export default function FlowStepCard( {
 					<span className="datamachine-queue-indicator">
 						{ ' ' }
 						<span className="datamachine-queue-badge">
-							📋 { __( 'Next in queue', 'data-machine' ) }
+							{ __( 'Next in queue', 'data-machine' ) }
 						</span>
 					</span>
 				</span>

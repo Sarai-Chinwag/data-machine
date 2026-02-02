@@ -246,21 +246,20 @@ export default function FlowStepCard( {
 						</div>
 					) }
 
-					{ /* Handler Configuration */ }
+					{ /* Handler Configuration - only for steps that use handlers */ }
 					{ ( () => {
 						const handlerStepTypeInfo =
 							stepTypes[ pipelineStep.step_type ] || {};
-						const usesHandler =
-							handlerStepTypeInfo.uses_handler !== false; // Default true for safety
+						// Proper falsy check - PHP false becomes "" in JSON
+						const usesHandler = Boolean( handlerStepTypeInfo.uses_handler );
 
-						// For steps that don't use handlers (e.g., agent_ping),
-						// use the step_type as the effective handler slug for config display
-						const effectiveHandlerSlug = usesHandler
-							? flowStepConfig.handler_slug
-							: pipelineStep.step_type;
+						// Skip entirely for steps without handlers (ai, agent_ping)
+						if ( ! usesHandler ) {
+							return null;
+						}
 
-						// Only skip rendering if this is a handler-based step with no handler configured
-						if ( usesHandler && ! flowStepConfig.handler_slug ) {
+						// Handler-based step with no handler configured - show configure button
+						if ( ! flowStepConfig.handler_slug ) {
 							return (
 								<FlowStepHandler
 									handlerSlug={ null }
@@ -272,9 +271,10 @@ export default function FlowStepCard( {
 							);
 						}
 
+						// Handler-based step with handler configured - show settings
 						return (
 							<FlowStepHandler
-								handlerSlug={ effectiveHandlerSlug }
+								handlerSlug={ flowStepConfig.handler_slug }
 								settingsDisplay={
 									flowStepConfig.settings_display || []
 								}

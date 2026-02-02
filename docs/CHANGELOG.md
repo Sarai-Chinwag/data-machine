@@ -2,6 +2,12 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [0.18.2] - 2026-02-01
+
+### Changed
+- Document AI agent integration in new SKILL.md
+- Hide Configure button for non-handler steps while keeping settings display
+
 ## [0.18.1] - 2026-02-01
 
 ### Changed

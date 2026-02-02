@@ -2,6 +2,14 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [0.19.2] - 2026-02-02
+
+### Changed
+- Merge pull request #54 from saraichinwag/fix/engine-all-method
+
+### Fixed
+- fix(agent-ping): use engine->all() not getAll()
+
 ## [0.19.1] - 2026-02-02
 
 ### Fixed

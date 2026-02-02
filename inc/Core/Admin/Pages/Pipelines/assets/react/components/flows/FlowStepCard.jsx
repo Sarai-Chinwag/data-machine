@@ -280,18 +280,21 @@ export default function FlowStepCard( {
 								className={ queueHasItems ? 'datamachine-queue-linked' : '' }
 							/>
 
-							<div className="datamachine-queue-actions">
-								<Button
-									variant="secondary"
-									size="small"
-									onClick={ handleAddToQueue }
-									disabled={ isSaving || ! localUserMessage.trim() }
-								>
-									{ isSaving
-										? __( 'Adding…', 'data-machine' )
-										: __( 'Add to Queue', 'data-machine' ) }
-								</Button>
-							</div>
+							{ /* Only show Add to Queue when queue is empty - otherwise editing updates queue[0] */ }
+							{ ! queueHasItems && (
+								<div className="datamachine-queue-actions">
+									<Button
+										variant="secondary"
+										size="small"
+										onClick={ handleAddToQueue }
+										disabled={ isSaving || ! localUserMessage.trim() }
+									>
+										{ isSaving
+											? __( 'Adding…', 'data-machine' )
+											: __( 'Add to Queue', 'data-machine' ) }
+									</Button>
+								</div>
+							) }
 						</div>
 					) }
 

@@ -40,7 +40,7 @@ Data Machine is also a **self-scheduling execution layer** for autonomous AI age
 
 1. **Flows run on schedules** — Daily, hourly, or cron expressions
 2. **Prompts are queueable** — Both AI and Agent Ping steps pop from queues
-3. **Agent Ping triggers external agents** — Webhook fires after pipeline completion
+3. **Agent Ping triggers external agents** — Webhook fires after pipeline completion (outbound-only; inbound triggers use REST endpoints like `/execute` and `/chat`)
 
 ### The Pattern
 

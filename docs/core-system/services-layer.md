@@ -2,7 +2,7 @@
 
 **Abilities-First Architecture** (@since v0.11.7)
 
-The Services Layer has been fully migrated to the WordPress 6.9 Abilities API. The `inc/Services/` directory has been deleted. All business logic now resides in ability classes under `inc/Abilities/`.
+The Services Layer has been fully migrated to the WordPress 6.9 Abilities API. The legacy Services directory has been deleted. All business logic now resides in ability classes under `inc/Abilities/`.
 
 ## Migration Status
 
@@ -19,7 +19,7 @@ The migration from OOP service managers to WordPress Abilities API is **complete
 | `HandlerService` | `HandlerAbilities` | `inc/Abilities/HandlerAbilities.php` |
 | `StepTypeService` | `StepTypeAbilities` | `inc/Abilities/StepTypeAbilities.php` |
 | `LogsManager` | `LogAbilities` | `inc/Abilities/LogAbilities.php` |
-| `CacheManager` | Distributed `clearCache()` methods | Per-ability class |
+| `CacheManager` | Ability-level `clearCache()` methods (legacy name) | Per-ability class |
 | `AuthProviderService` | `AuthAbilities` | `inc/Abilities/AuthAbilities.php` |
 
 ## Abilities Overview

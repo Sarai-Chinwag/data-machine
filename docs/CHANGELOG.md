@@ -2,6 +2,12 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## Unreleased
+
+### Changed
+- Clarify Agent Ping outbound-only loop patterns and REST triggers in docs
+- Align cache management and direct execution sentinel docs; drop stale cache endpoint example
+
 ## [1.3.0] - 2026-02-02
 
 ### Changed

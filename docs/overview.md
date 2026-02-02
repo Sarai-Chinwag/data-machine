@@ -25,11 +25,11 @@ While humans use Data Machine to automate content workflows, AI agents can use i
 
 - **Prompt Queue as Project Memory**: Queue items persist across sessions, storing project context that survives context window limits. Your multi-week project becomes a series of queued prompts.
 
-- **Agent Ping for Continuity**: The `agent_ping` step type triggers external agents (via webhook) after pipeline completion. This is how the loop closes — you get notified when it's your turn to act.
+- **Agent Ping for Continuity**: The `agent_ping` step type triggers external agents (via webhook) after pipeline completion. This is how the loop closes — you get notified when it's your turn to act. Agent Ping is outbound-only; inbound triggers use the REST API.
 
 - **Phased Execution**: Complex projects execute in stages over days or weeks. Each stage completes, pings the agent, and the agent queues the next stage.
 
-- **Autonomous Loops**: An agent can run indefinitely: process result → queue next task → sleep → wake on ping → repeat.
+- **Autonomous Loops**: An agent can run indefinitely: process result → queue next task → sleep → wake on ping → repeat. Use explicit stop conditions to avoid runaway loops.
 
 This transforms Data Machine from a content automation tool into a **self-scheduling execution layer for AI agents**.
 
@@ -37,7 +37,7 @@ This transforms Data Machine from a content automation tool into a **self-schedu
 
 - **Pipelines** are reusable workflow templates that store handler order, tool selections, and AI settings.
 - **Flows** instantiate pipelines with schedule metadata, flow-level overrides, and runtime configuration values stored per flow.
-- **Ephemeral Workflows** (@since v0.8.0) are temporary, on-the-fly workflows triggered via the REST API. They skip database persistence for the workflow definition itself, using sentinel values (`flow_id=0`, `pipeline_id=0`) and dynamic configuration stored within the job's engine snapshot.
+- **Ephemeral Workflows** (@since v0.8.0) are temporary, on-the-fly workflows triggered via the REST API. They skip database persistence for the workflow definition itself, using sentinel values (`flow_id='direct'`, `pipeline_id='direct'`) and dynamic configuration stored within the job's engine snapshot.
 - **Jobs** track individual flow executions, persist engine parameters, and power the fully React-based Jobs dashboard for real-time monitoring.
 - **Steps** execute sequentially (Fetch → AI → Publish/Update) with shared base classes that enforce validation, logging, and engine data synchronization.
 
@@ -51,7 +51,7 @@ The Abilities API (DataMachine\Abilities) provides direct method calls for core 
 
 **Remaining Services** (utilities for cross-cutting concerns):
 - `LogsManager` aggregates log entries in the `wp_datamachine_logs` table for filtering in the admin UI.
-- `CacheManager` provides centralized cache invalidation to ensure dynamic handler and step type registrations are immediately reflected across the system.
+- Cache invalidation is handled by ability-level `clearCache()` methods to ensure dynamic handler and step type registrations are immediately reflected across the system.
 
 Abilities are the single source of truth for REST endpoints, CLI commands, and Chat tools, ensuring validation and sanitization before persisting data or enqueuing jobs.
 

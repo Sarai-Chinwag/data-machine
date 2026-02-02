@@ -176,13 +176,13 @@ For `taxonomy_{name}_selection`:
 
 ## Agent Ping Step
 
-Notifies external agents/webhooks during pipeline execution:
+Notifies external agents/webhooks during pipeline execution (outbound-only):
 
 ### Configuration
 Configure via the Flow UI: select the Agent Ping step and set the webhook URL in the handler configuration modal. Each flow can have its own webhook destination.
 
 ### Sending Pings
-Use the `datamachine/send-ping` ability or trigger via pipeline execution. The step sends pipeline context to configured webhook URLs with support for Discord webhook formatting.
+Use the `datamachine/send-ping` ability or trigger via pipeline execution. The step sends pipeline context to configured webhook URLs with support for Discord webhook formatting. For inbound triggers, use REST endpoints like `/wp-json/datamachine/v1/execute` or `/wp-json/datamachine/v1/chat`.
 
 ## Content Quality Guidelines
 

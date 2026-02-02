@@ -246,7 +246,7 @@ else:
     print(f"Error: {response.json()['message']}")
 ```
 
-### JavaScript Cache Management
+### JavaScript Settings Update
 
 ```javascript
 const axios = require('axios');
@@ -258,19 +258,6 @@ const settingsAPI = {
     password: 'application_password'
   }
 };
-
-// Clear specific cache
-async function clearCache(type = 'all') {
-  const response = await axios.delete(
-    `${settingsAPI.baseURL}/cache`,
-    {
-      data: { type },
-      auth: settingsAPI.auth
-    }
-  );
-
-  return response.data.success;
-}
 
 // Configure tool
 async function configureTool(toolId, configData) {
@@ -284,9 +271,6 @@ async function configureTool(toolId, configData) {
 }
 
 // Usage
-await clearCache('flows');
-console.log('Flow caches cleared');
-
 const configured = await configureTool('google_search', {
   api_key: 'AIzaSyC1234567890abcdef',
   search_engine_id: '012345678901234567890:abcdefg'

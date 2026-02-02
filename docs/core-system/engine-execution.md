@@ -99,7 +99,7 @@ Developers can add custom intervals via the `datamachine_scheduler_intervals` fi
 
 The engine supports **Ephemeral Workflows** (@since v0.8.0)—workflows executed without being saved to the database. These are triggered via the `/execute` REST endpoint by passing a `workflow` object instead of a `flow_id`.
 
-- **Sentinel Values**: Use `flow_id = 0` and `pipeline_id = 0`.
+- **Sentinel Values**: Use `flow_id = 'direct'` and `pipeline_id = 'direct'`.
 - **Dynamic Config**: Configurations are generated on-the-fly from the request and stored in the job's `engine_data` snapshot.
 - **Execution Flow**: Once initialized, they follow the standard `execute_step` → `schedule_next_step` cycle.
 

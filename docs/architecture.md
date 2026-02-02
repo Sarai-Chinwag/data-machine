@@ -53,7 +53,7 @@ $image_url = $engine_data['image_url'] ?? null;
 **Remaining Services** (utilities for cross-cutting concerns):
 - **JobManager** - Job execution monitoring and management
 - **LogsManager** - Centralized log access and filtering
-- **CacheManager** - Centralized cache invalidation for services, tools, and site context
+- **Cache Invalidation** - Ability-level `clearCache()` methods for handlers, step types, tools, and settings
 
 **Abilities API** (business logic):
 - **FlowAbilities** - Flow CRUD operations, duplication

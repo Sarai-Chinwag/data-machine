@@ -2,6 +2,18 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [1.3.0] - 2026-02-02
+
+### Changed
+- **BREAKING**: Renamed `enabled_tools` to `disabled_tools` in AI step configuration
+  - Empty array now means "use all globally enabled tools" (no exclusions)
+  - Non-empty array explicitly excludes those tools from the step
+  - Old `enabled_tools` config is ignored (graceful degradation)
+- Tool enablement logic: `Available = Globally enabled − Step disabled`
+
+### Fixed
+- Tool enablement bug where empty `enabled_tools` array disabled all tools instead of using defaults
+
 ## [0.19.11] - 2026-02-02
 
 ### Added

@@ -36,7 +36,7 @@ Three levels, applied in order:
 All service logic uses WordPress Abilities API. Key abilities include:
 - `datamachine/create-flow`, `datamachine/update-flow`, `datamachine/delete-flow`
 - `datamachine/create-pipeline`, `datamachine/update-pipeline`, `datamachine/delete-pipeline`
-- `datamachine/queue-add`, `datamachine/queue-list`, `datamachine/queue-clear`, `datamachine/queue-update`
+- `datamachine/queue-add`, `datamachine/queue-list`, `datamachine/queue-clear`, `datamachine/queue-remove`
 - `datamachine/send-ping`, `datamachine/execute-workflow`
 
 ## CLI Commands
@@ -108,13 +108,10 @@ For `taxonomy_{name}_selection`:
 Notifies external agents/webhooks after pipeline steps:
 
 ### Configuration
-Handler config is stored at **flow level**, not pipeline level:
-```php
-$flow['flow_config']['step_id']['handler_config']['webhook_url'] = 'https://...';
-```
+Configure via the Flow UI: select the Agent Ping step and set the webhook URL in the handler configuration modal. Each flow can have its own webhook destination.
 
 ### Sending Pings
-Use the `datamachine/send-ping` ability or configure via the Flow UI.
+Use the `datamachine/send-ping` ability or trigger via pipeline execution. The step sends pipeline context to configured webhook URLs with support for Discord webhook formatting.
 
 ## Content Quality Guidelines
 

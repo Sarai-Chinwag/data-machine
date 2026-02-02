@@ -64,7 +64,7 @@ Pipelines define your workflow template. Flows schedule when they run. Jobs trac
 
 Data Machine can orchestrate autonomous AI agents, not just content workflows.
 
-**The key insight:** An AI agent can use Data Machine to schedule prompts *to itself*. The Agent Ping step triggers external agents after pipeline completion, enabling a continuous execution loop:
+**The key insight:** An AI agent can use Data Machine to schedule prompts *to itself*. The Agent Ping step triggers external agents during pipeline completion, enabling a continuous execution loop:
 
 ```
 Agent queues task → Pipeline runs → Agent Ping fires → 

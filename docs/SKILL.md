@@ -126,7 +126,7 @@ For `taxonomy_{name}_selection`:
 
 ## Agent Ping Step
 
-Notifies external agents/webhooks after pipeline steps:
+Notifies external agents/webhooks during pipeline execution:
 
 ### Configuration
 Configure via the Flow UI: select the Agent Ping step and set the webhook URL in the handler configuration modal. Each flow can have its own webhook destination.

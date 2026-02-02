@@ -33,11 +33,11 @@ Three levels, applied in order:
 3. **User message** (queue item or step config) - The actual task/topic
 
 ### Abilities-First Architecture
-All service logic uses WordPress Abilities API:
-- `datamachine/flow/*` - Flow operations
-- `datamachine/pipeline/*` - Pipeline operations
-- `datamachine/queue-*` - Prompt queue management
-- `datamachine/agent-ping/*` - Agent ping operations
+All service logic uses WordPress Abilities API. Key abilities include:
+- `datamachine/create-flow`, `datamachine/update-flow`, `datamachine/delete-flow`
+- `datamachine/create-pipeline`, `datamachine/update-pipeline`, `datamachine/delete-pipeline`
+- `datamachine/queue-add`, `datamachine/queue-list`, `datamachine/queue-clear`, `datamachine/queue-update`
+- `datamachine/send-ping`, `datamachine/execute-workflow`
 
 ## CLI Commands
 
@@ -110,17 +110,11 @@ Notifies external agents/webhooks after pipeline steps:
 ### Configuration
 Handler config is stored at **flow level**, not pipeline level:
 ```php
-$flow['flow_config']['step_id']['handler_config']['url'] = 'https://...';
+$flow['flow_config']['step_id']['handler_config']['webhook_url'] = 'https://...';
 ```
 
-### Accessing Config
-Use the abilities API:
-```php
-wp_do_ability('datamachine/agent-ping/get-handler-config', [
-    'flow_id' => $flow_id,
-    'flow_step_id' => $step_id
-]);
-```
+### Sending Pings
+Use the `datamachine/send-ping` ability or configure via the Flow UI.
 
 ## Content Quality Guidelines
 

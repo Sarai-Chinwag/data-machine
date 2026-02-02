@@ -2,6 +2,16 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [0.18.1] - 2026-02-01
+
+### Changed
+- Remove deprecated CLI agent command (#37)
+
+### Fixed
+- fix(agent-ping): use flow-level handler_config via abilities pattern (#38)
+- fix(agent-ping): use flow-level handler_config instead of pipeline config (#36)
+- engine data access bugs in AI step and queue (#35)
+
 ## [0.18.0] - 2026-02-01
 
 ### Added

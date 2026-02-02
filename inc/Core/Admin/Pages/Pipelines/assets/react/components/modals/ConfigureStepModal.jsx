@@ -10,7 +10,7 @@
  * WordPress dependencies
  */
 import { useState, useEffect, useMemo } from '@wordpress/element';
-import { Modal, Button, TextareaControl, TextControl } from '@wordpress/components';
+import { Modal, Button, TextareaControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
@@ -219,18 +219,9 @@ export default function ConfigureStepModal( {
 		initialData,
 		validate: ( data ) => {
 			if ( isAgentPing ) {
-				// Webhook URL is required for Agent Ping
+				// Webhook URL is required - format validation handled by WebhookUrlField
 				if ( ! data.webhookUrl || ! data.webhookUrl.trim() ) {
 					return __( 'Webhook URL is required', 'data-machine' );
-				}
-				// Validate URL format
-				try {
-					const parsed = new URL( data.webhookUrl );
-					if ( ! [ 'http:', 'https:' ].includes( parsed.protocol ) ) {
-						return __( 'Please enter a valid HTTP/HTTPS URL', 'data-machine' );
-					}
-				} catch {
-					return __( 'Please enter a valid URL', 'data-machine' );
 				}
 				return null;
 			}

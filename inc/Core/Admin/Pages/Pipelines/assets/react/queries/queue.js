@@ -95,15 +95,26 @@ export const useClearQueue = () => {
 
 			const cachedFlowId = normalizeId( flowId );
 			const cachedFlowStepId = flowStepId ? String( flowStepId ) : null;
+			const previousQueue = queryClient.getQueryData( [
+				'flowQueue',
+				cachedFlowId,
+				cachedFlowStepId,
+			] );
+			const queueEnabled = previousQueue?.queueEnabled;
+
 			// Optimistically clear the cache
 			queryClient.setQueryData(
 				[ 'flowQueue', cachedFlowId, cachedFlowStepId ],
 				{
 					queue: [],
 					count: 0,
-					queueEnabled: false,
+					queueEnabled: typeof queueEnabled === 'boolean' ? queueEnabled : false,
 				}
 			);
+
+			queryClient.invalidateQueries( {
+				queryKey: [ 'flows' ],
+			} );
 		},
 	} );
 };
@@ -166,6 +177,10 @@ export const useRemoveFromQueue = () => {
 			const cachedFlowStepId = flowStepId ? String( flowStepId ) : null;
 			queryClient.invalidateQueries( {
 				queryKey: [ 'flowQueue', cachedFlowId, cachedFlowStepId ],
+			} );
+
+			queryClient.invalidateQueries( {
+				queryKey: [ 'flows' ],
 			} );
 		},
 	} );

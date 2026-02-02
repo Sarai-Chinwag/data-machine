@@ -42,7 +42,7 @@ trait QueueableTrait {
 	protected function popFromQueueIfEmpty( string $current_value, bool $queue_enabled = false ): array {
 		if ( ! $queue_enabled ) {
 			return array(
-				'value'      => '',
+				'value'      => $current_value,
 				'from_queue' => false,
 				'added_at'   => null,
 			);

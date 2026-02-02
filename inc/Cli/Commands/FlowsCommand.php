@@ -297,9 +297,13 @@ class FlowsCommand extends BaseCommand {
 
 		$step_configs = array();
 		if ( isset( $assoc_args['step_configs'] ) ) {
-			$decoded = json_decode( $assoc_args['step_configs'], true );
+			$decoded = json_decode( wp_unslash( $assoc_args['step_configs'] ), true );
 			if ( null === $decoded && '' !== $assoc_args['step_configs'] ) {
 				WP_CLI::error( 'Invalid JSON in --step_configs' );
+				return;
+			}
+			if ( null !== $decoded && ! is_array( $decoded ) ) {
+				WP_CLI::error( '--step_configs must be a JSON object' );
 				return;
 			}
 			$step_configs = $decoded ?? array();

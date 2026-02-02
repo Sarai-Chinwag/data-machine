@@ -9,7 +9,7 @@ Data Machine turns WordPress into an AI-powered content automation hub:
 - **Visual pipeline builder** — Create multi-step workflows without code
 - **AI processing** — Enhance, filter, and transform content with any provider
 - **Scheduled execution** — Run workflows on intervals or on-demand
-- **Agent orchestration** — AI agents can schedule themselves via prompt queues
+- **Agent orchestration** — AI agents can schedule recurring tasks for themselves using Agent Pings 
 
 ## How It Works
 

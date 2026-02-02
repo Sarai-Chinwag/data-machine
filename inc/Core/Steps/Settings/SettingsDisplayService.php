@@ -33,6 +33,10 @@ class SettingsDisplayService {
 	 * @return array Formatted settings display array
 	 */
 	public function getDisplaySettings( string $flow_step_id, string $step_type ): array {
+		if ( ! $this->shouldShowSettingsDisplay( $step_type ) ) {
+			return array();
+		}
+
 		// Get flow step configuration
 		$db_flows         = new \DataMachine\Core\Database\Flows\Flows();
 		$flow_step_config = $db_flows->get_flow_step_config( $flow_step_id );
@@ -65,6 +69,20 @@ class SettingsDisplayService {
 		$fields = $handler_settings::get_fields();
 
 		return $this->buildDisplayArray( $fields, $current_settings );
+	}
+
+	/**
+	 * Determine if settings display should render for a step type.
+	 *
+	 * @param string $step_type Step type slug.
+	 * @return bool
+	 */
+	private function shouldShowSettingsDisplay( string $step_type ): bool {
+		$step_types = apply_filters( 'datamachine_step_types', array() );
+		if ( empty( $step_type ) || empty( $step_types[ $step_type ] ) ) {
+			return true;
+		}
+		return $step_types[ $step_type ]['show_settings_display'] ?? true;
 	}
 
 	/**

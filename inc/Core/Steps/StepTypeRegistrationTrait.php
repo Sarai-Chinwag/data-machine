@@ -52,7 +52,8 @@ trait StepTypeRegistrationTrait {
 		bool $usesHandler = true,
 		bool $hasPipelineConfig = false,
 		bool $consumeAllPackets = false,
-		?array $stepSettings = null
+		?array $stepSettings = null,
+		bool $showSettingsDisplay = true
 	): void {
 		// Prevent duplicate registration when step class is instantiated multiple times
 		if ( isset( self::$registered_step_types[ $slug ] ) ) {
@@ -70,7 +71,8 @@ trait StepTypeRegistrationTrait {
 				$position,
 				$usesHandler,
 				$hasPipelineConfig,
-				$consumeAllPackets
+				$consumeAllPackets,
+				$showSettingsDisplay
 			) {
 				$steps[ $slug ] = array(
 					'label'               => $label,
@@ -79,7 +81,8 @@ trait StepTypeRegistrationTrait {
 					'position'            => $position,
 					'uses_handler'        => $usesHandler,
 					'has_pipeline_config' => $hasPipelineConfig,
-					'consume_all_packets' => $consumeAllPackets,
+					'consume_all_packets'   => $consumeAllPackets,
+					'show_settings_display' => $showSettingsDisplay,
 				);
 				return $steps;
 			}

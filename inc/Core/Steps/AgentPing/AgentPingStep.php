@@ -130,7 +130,7 @@ class AgentPingStep extends Step {
 				'prompt'       => $prompt,
 				'from_queue'   => $from_queue,
 				'data_packets' => $data_packets,
-				'engine_data'  => $this->engine->getAll(),
+				'engine_data'  => $this->engine->all(),
 				'flow_id'      => $this->engine->get( 'flow_id' ),
 				'pipeline_id'  => $this->engine->get( 'pipeline_id' ),
 				'job_id'       => $this->job_id,

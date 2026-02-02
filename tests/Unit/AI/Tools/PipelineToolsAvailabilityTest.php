@@ -20,7 +20,7 @@ class PipelineToolsAvailabilityTest extends WP_UnitTestCase {
 		$this->pipelines = new Pipelines();
 	}
 
-	public function test_pipeline_step_tools_respect_enabled_tools(): void {
+	public function test_pipeline_step_tools_respect_disabled_tools(): void {
 		$pipeline_id = $this->pipelines->create_pipeline( [
 			'pipeline_name' => 'Tool Gate Pipeline',
 			'pipeline_config' => [],
@@ -34,7 +34,7 @@ class PipelineToolsAvailabilityTest extends WP_UnitTestCase {
 		$pipeline_config = [
 			$pipeline_step_id => [
 				'step_type' => 'fetch',
-				'enabled_tools' => [],
+				'disabled_tools' => [],
 			],
 		];
 
@@ -47,7 +47,7 @@ class PipelineToolsAvailabilityTest extends WP_UnitTestCase {
 		$this->assertIsArray( $tools_without );
 		$this->assertArrayNotHasKey( 'web_fetch', $tools_without );
 
-		$pipeline_config[ $pipeline_step_id ]['enabled_tools'] = [ 'web_fetch' ];
+		$pipeline_config[ $pipeline_step_id ]['disabled_tools'] = [ 'web_fetch' ];
 		$updated_again = $this->pipelines->update_pipeline( $pipeline_id, [
 			'pipeline_config' => $pipeline_config,
 		] );
@@ -72,7 +72,7 @@ class PipelineToolsAvailabilityTest extends WP_UnitTestCase {
 		$pipeline_config = [
 			$pipeline_step_id => [
 				'step_type' => 'fetch',
-				'enabled_tools' => [ 'web_fetch' ],
+				'disabled_tools' => [ 'web_fetch' ],
 			],
 		];
 

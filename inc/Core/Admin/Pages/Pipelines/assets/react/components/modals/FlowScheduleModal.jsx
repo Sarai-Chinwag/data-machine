@@ -50,7 +50,9 @@ export default function FlowScheduleModal( {
 					},
 				} );
 
-				if ( onSuccess ) {onSuccess();}
+				if ( onSuccess ) {
+					onSuccess();
+				}
 				onClose();
 			} catch ( error ) {
 				throw new Error( error.message || 'Failed to update schedule' );
@@ -142,7 +144,10 @@ export default function FlowScheduleModal( {
 					<div className="datamachine-modal-info-box datamachine-modal-info-box--note">
 						<p>
 							<strong>
-								{ __( 'Automatic Scheduling:', 'data-machine' ) }
+								{ __(
+									'Automatic Scheduling:',
+									'data-machine'
+								) }
 							</strong>{ ' ' }
 							{ __(
 								'Flow will run automatically based on the selected interval. You can still trigger it manually anytime.',

@@ -63,12 +63,11 @@ export default function ExportTab( { pipelines, onClose } ) {
 
 				setSelectedIds( [] );
 				return __( 'Pipelines exported successfully!', 'data-machine' );
-			} 
-				throw new Error(
-					response.message ||
-						__( 'Failed to export pipelines', 'data-machine' )
-				);
-			
+			}
+			throw new Error(
+				response.message ||
+					__( 'Failed to export pipelines', 'data-machine' )
+			);
 		} );
 	};
 

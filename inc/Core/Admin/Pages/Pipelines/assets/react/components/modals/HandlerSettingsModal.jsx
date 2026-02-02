@@ -219,7 +219,9 @@ export default function HandlerSettingsModal( {
 				<div className="datamachine-modal-section">
 					<div className="datamachine-modal-header-section">
 						<div>
-							<strong>{ __( 'Handler:', 'data-machine' ) }</strong>{ ' ' }
+							<strong>
+								{ __( 'Handler:', 'data-machine' ) }
+							</strong>{ ' ' }
 							{ handlerInfo.label || handlerSlug }
 						</div>
 						<Button

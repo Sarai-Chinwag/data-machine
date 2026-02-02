@@ -8,11 +8,7 @@
  * WordPress dependencies
  */
 import { useCallback } from '@wordpress/element';
-import {
-	Card,
-	CardBody,
-	Button,
-} from '@wordpress/components';
+import { Card, CardBody, Button } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
@@ -153,8 +149,14 @@ export default function PipelineStepCard( {
 
 								if ( effectiveTools.length === 0 ) {
 									return isExplicitlyConfigured
-										? __( 'None (disabled)', 'data-machine' )
-										: __( 'None configured', 'data-machine' );
+										? __(
+												'None (disabled)',
+												'data-machine'
+										  )
+										: __(
+												'None configured',
+												'data-machine'
+										  );
 								}
 
 								return effectiveTools

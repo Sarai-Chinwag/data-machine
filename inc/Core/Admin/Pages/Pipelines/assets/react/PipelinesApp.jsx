@@ -269,9 +269,7 @@ export default function PipelinesApp() {
 			return (
 				<div className="datamachine-pipelines-loading">
 					<Spinner />
-					<p>
-						{ __( 'Loading pipeline details…', 'data-machine' ) }
-					</p>
+					<p>{ __( 'Loading pipeline details…', 'data-machine' ) }</p>
 				</div>
 			);
 		}

@@ -23,13 +23,16 @@ export default function UrlListField( {
 } ) {
 	const label = fieldConfig.label || fieldKey;
 	const help = fieldConfig.description || '';
-	
+
 	// Normalize value to array
-	const urls = Array.isArray( value ) 
-		? value 
-		: ( typeof value === 'string' && value.trim() )
-			? value.split( /[\r\n]+/ ).map( u => u.trim() ).filter( Boolean )
-			: [ '' ];
+	const urls = Array.isArray( value )
+		? value
+		: typeof value === 'string' && value.trim()
+		? value
+				.split( /[\r\n]+/ )
+				.map( ( u ) => u.trim() )
+				.filter( Boolean )
+		: [ '' ];
 
 	const handleUrlChange = ( index, newUrl ) => {
 		const newUrls = [ ...urls ];
@@ -49,18 +52,15 @@ export default function UrlListField( {
 
 	return (
 		<div className="datamachine-handler-field datamachine-url-list-field">
-			<label className="components-base-control__label">
-				{ label }
-			</label>
-			
+			<label className="components-base-control__label">{ label }</label>
+
 			{ urls.map( ( url, index ) => (
-				<div 
-					key={ index } 
-					className="datamachine-url-list-field__row"
-				>
+				<div key={ index } className="datamachine-url-list-field__row">
 					<TextControl
 						value={ url }
-						onChange={ ( newUrl ) => handleUrlChange( index, newUrl ) }
+						onChange={ ( newUrl ) =>
+							handleUrlChange( index, newUrl )
+						}
 						placeholder="https://..."
 						__nextHasNoMarginBottom
 					/>
@@ -75,7 +75,7 @@ export default function UrlListField( {
 					) }
 				</div>
 			) ) }
-			
+
 			<Button
 				icon={ plus }
 				onClick={ handleAdd }
@@ -84,7 +84,7 @@ export default function UrlListField( {
 			>
 				{ __( 'Add URL', 'data-machine' ) }
 			</Button>
-			
+
 			{ help && (
 				<p className="components-base-control__help datamachine-url-list-field__help">
 					{ help }

@@ -79,7 +79,12 @@ export default function ChatSidebar() {
 	const chatMutation = useChatMutation();
 	const sessionQuery = useChatSession( chatSessionId );
 	const { invalidateFromToolCalls } = useChatQueryInvalidation();
-	const { processToCompletion, isProcessing, processingSessionId, turnCount } = useChatTurn();
+	const {
+		processToCompletion,
+		isProcessing,
+		processingSessionId,
+		turnCount,
+	} = useChatTurn();
 	const isCreatingSessionRef = useRef( false );
 	const loadingSessionRef = useRef( null );
 
@@ -145,7 +150,10 @@ export default function ChatSidebar() {
 					await processToCompletion(
 						response.session_id,
 						( newMessages ) =>
-							setMessages( ( prev ) => [ ...prev, ...newMessages ] ),
+							setMessages( ( prev ) => [
+								...prev,
+								...newMessages,
+							] ),
 						response.max_turns,
 						selectedPipelineId
 					);
@@ -219,9 +227,13 @@ export default function ChatSidebar() {
 	}, [ messages ] );
 
 	// Session-aware loading state - only show loading for the session that initiated the request
-	const isMutationLoading = chatMutation.isPending && loadingSessionRef.current === ( chatSessionId || 'new' );
-	const isProcessingThisSession = isProcessing && processingSessionId === chatSessionId;
-	const isLoading = sessionQuery.isLoading || isMutationLoading || isProcessingThisSession;
+	const isMutationLoading =
+		chatMutation.isPending &&
+		loadingSessionRef.current === ( chatSessionId || 'new' );
+	const isProcessingThisSession =
+		isProcessing && processingSessionId === chatSessionId;
+	const isLoading =
+		sessionQuery.isLoading || isMutationLoading || isProcessingThisSession;
 
 	return (
 		<aside className="datamachine-chat-sidebar">

@@ -32,8 +32,8 @@ export function useChatTurn() {
 	/**
 	 * Execute a single continuation turn
 	 *
-	 * @param {string}   sessionId        Session ID to continue
-	 * @param {Function} onNewMessages    Callback for new messages
+	 * @param {string}   sessionId          Session ID to continue
+	 * @param {Function} onNewMessages      Callback for new messages
 	 * @param {number}   selectedPipelineId Pipeline ID for context
 	 * @return {Object} API response
 	 */
@@ -46,7 +46,9 @@ export function useChatTurn() {
 			} );
 
 			if ( ! response.success ) {
-				throw new Error( response.message || 'Continue request failed' );
+				throw new Error(
+					response.message || 'Continue request failed'
+				);
 			}
 
 			const data = response.data;
@@ -66,9 +68,9 @@ export function useChatTurn() {
 	/**
 	 * Process turns until completion or max turns reached
 	 *
-	 * @param {string}   sessionId         Session ID to continue
-	 * @param {Function} onNewMessages     Callback for new messages (receives array)
-	 * @param {number}   maxTurns          Maximum turns from server response
+	 * @param {string}   sessionId          Session ID to continue
+	 * @param {Function} onNewMessages      Callback for new messages (receives array)
+	 * @param {number}   maxTurns           Maximum turns from server response
 	 * @param {number}   selectedPipelineId Pipeline ID for context
 	 * @return {Object} Result with completed status and turn count
 	 */

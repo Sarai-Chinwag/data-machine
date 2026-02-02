@@ -49,11 +49,12 @@ export default function FlowSteps( {
 		}
 
 		// Convert flow config object to array
-		const flowStepsArray = Object.entries( flowConfig )
-			.map( ( [ flowStepId, config ] ) => ( {
+		const flowStepsArray = Object.entries( flowConfig ).map(
+			( [ flowStepId, config ] ) => ( {
 				flowStepId,
 				...config,
-			} ) );
+			} )
+		);
 
 		// Sort by execution order
 		const sorted = flowStepsArray.sort( ( a, b ) => {
@@ -113,16 +114,16 @@ export default function FlowSteps( {
 					key={ step.flowStepId }
 					className="datamachine-flow-step-container"
 				>
-						<FlowStepCard
-							flowId={ flowId }
-							pipelineId={ pipelineId }
-							flowStepId={ step.flowStepId }
-							flowStepConfig={ step.flowStepConfig }
-							pipelineStep={ step.pipelineStep }
-							pipelineConfig={ pipelineConfig }
-							onConfigure={ onStepConfigured }
-							onQueueClick={ () => onQueueClick( step.flowStepId ) }
-						/>
+					<FlowStepCard
+						flowId={ flowId }
+						pipelineId={ pipelineId }
+						flowStepId={ step.flowStepId }
+						flowStepConfig={ step.flowStepConfig }
+						pipelineStep={ step.pipelineStep }
+						pipelineConfig={ pipelineConfig }
+						onConfigure={ onStepConfigured }
+						onQueueClick={ () => onQueueClick( step.flowStepId ) }
+					/>
 				</div>
 			);
 

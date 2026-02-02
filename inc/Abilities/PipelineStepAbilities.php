@@ -507,7 +507,7 @@ class PipelineStepAbilities {
 		if ( null === $system_prompt && null === $provider && null === $model && null === $disabled_tools ) {
 			return array(
 				'success' => false,
-				'error'   => 'At least one of system_prompt, provider, model, or enabled_tools is required',
+				'error'   => 'At least one of system_prompt, provider, model, or disabled_tools is required',
 			);
 		}
 

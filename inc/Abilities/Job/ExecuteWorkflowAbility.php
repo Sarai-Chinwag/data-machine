@@ -486,7 +486,7 @@ class ExecuteWorkflowAbility {
 				'handler_slug'     => $step['handler_slug'] ?? '',
 				'handler_config'   => $step['handler_config'] ?? array(),
 				'user_message'     => $step['user_message'] ?? '',
-				'enabled_tools'    => $step['enabled_tools'] ?? array(),
+				'disabled_tools'   => $step['disabled_tools'] ?? array(),
 				'pipeline_id'      => 'direct',
 				'flow_id'          => 'direct',
 			);
@@ -497,7 +497,7 @@ class ExecuteWorkflowAbility {
 					'provider'      => $step['provider'] ?? '',
 					'model'         => $step['model'] ?? '',
 					'system_prompt' => $step['system_prompt'] ?? '',
-					'enabled_tools' => $step['enabled_tools'] ?? array(),
+					'disabled_tools' => $step['disabled_tools'] ?? array(),
 				);
 			}
 		}

@@ -54,20 +54,17 @@ const formatStatus = ( status ) => {
 /**
  * Flow Footer Component
  *
- * @param {Object}   props                             - Component props
- * @param {number}   props.flowId                      - Flow ID
- * @param {Object}   props.scheduling                  - Scheduling display data
- * @param {string}   props.scheduling.interval         - Schedule interval
- * @param {string}   props.scheduling.last_run_display - Pre-formatted last run display
- * @param {string}   props.scheduling.last_run_status  - Job status from last run
- * @param {boolean}  props.scheduling.is_running       - Whether a job is currently running
- * @param {string}   props.scheduling.next_run_display - Pre-formatted next run display
+ * @param {Object}  props                             - Component props
+ * @param {number}  props.flowId                      - Flow ID
+ * @param {Object}  props.scheduling                  - Scheduling display data
+ * @param {string}  props.scheduling.interval         - Schedule interval
+ * @param {string}  props.scheduling.last_run_display - Pre-formatted last run display
+ * @param {string}  props.scheduling.last_run_status  - Job status from last run
+ * @param {boolean} props.scheduling.is_running       - Whether a job is currently running
+ * @param {string}  props.scheduling.next_run_display - Pre-formatted next run display
  * @return {React.ReactElement} Flow footer
  */
-export default function FlowFooter( {
-	flowId,
-	scheduling,
-} ) {
+export default function FlowFooter( { flowId, scheduling } ) {
 	const {
 		interval,
 		last_run_display,
@@ -120,7 +117,6 @@ export default function FlowFooter( {
 					{ next_run_display || __( 'Never', 'data-machine' ) }
 				</div>
 			) }
-
 		</div>
 	);
 }

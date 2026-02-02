@@ -24,7 +24,8 @@ import { normalizeId } from '../utils/ids';
 /**
  * Fetch queue for a flow
  *
- * @param {number} flowId - Flow ID
+ * @param {number} flowId     - Flow ID
+ * @param          flowStepId
  * @return {Object} Query result with queue data
  */
 export const useFlowQueue = ( flowId, flowStepId ) => {
@@ -108,7 +109,10 @@ export const useClearQueue = () => {
 				{
 					queue: [],
 					count: 0,
-					queueEnabled: typeof queueEnabled === 'boolean' ? queueEnabled : false,
+					queueEnabled:
+						typeof queueEnabled === 'boolean'
+							? queueEnabled
+							: false,
 				}
 			);
 
@@ -166,7 +170,11 @@ export const useRemoveFromQueue = () => {
 			// Rollback on error
 			if ( context?.previousQueue ) {
 				queryClient.setQueryData(
-					[ 'flowQueue', context.cachedFlowId, context.cachedFlowStepId ],
+					[
+						'flowQueue',
+						context.cachedFlowId,
+						context.cachedFlowStepId,
+					],
 					context.previousQueue
 				);
 			}
@@ -245,7 +253,11 @@ export const useUpdateQueueItem = () => {
 			// Rollback on error
 			if ( context?.previousQueue ) {
 				queryClient.setQueryData(
-					[ 'flowQueue', context.cachedFlowId, context.cachedFlowStepId ],
+					[
+						'flowQueue',
+						context.cachedFlowId,
+						context.cachedFlowStepId,
+					],
 					context.previousQueue
 				);
 			}
@@ -306,7 +318,11 @@ export const useUpdateQueueSettings = () => {
 		onError: ( err, variables, context ) => {
 			if ( context?.previousQueue ) {
 				queryClient.setQueryData(
-					[ 'flowQueue', context.cachedFlowId, context.cachedFlowStepId ],
+					[
+						'flowQueue',
+						context.cachedFlowId,
+						context.cachedFlowStepId,
+					],
 					context.previousQueue
 				);
 			}

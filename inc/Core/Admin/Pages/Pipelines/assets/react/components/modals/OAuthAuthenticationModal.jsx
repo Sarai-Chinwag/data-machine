@@ -345,7 +345,9 @@ export default function OAuthAuthenticationModal( {
 				<div className="datamachine-modal-spacing--mb-20">
 					<div className="datamachine-modal-header-section">
 						<div>
-							<strong>{ __( 'Handler:', 'data-machine' ) }</strong>{ ' ' }
+							<strong>
+								{ __( 'Handler:', 'data-machine' ) }
+							</strong>{ ' ' }
 							{ handlerInfo.label || handlerSlug }
 						</div>
 						<ConnectionStatus connected={ connected } />

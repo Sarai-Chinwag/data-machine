@@ -51,7 +51,10 @@ export default function CSVDropzone( {
 		if ( file.size > maxSize ) {
 			const maxSizeMB = Math.round( maxSize / ( 1024 * 1024 ) );
 			dragDrop.setError(
-				__( `File size exceeds ${ maxSizeMB }MB limit.`, 'data-machine' )
+				__(
+					`File size exceeds ${ maxSizeMB }MB limit.`,
+					'data-machine'
+				)
 			);
 			return;
 		}

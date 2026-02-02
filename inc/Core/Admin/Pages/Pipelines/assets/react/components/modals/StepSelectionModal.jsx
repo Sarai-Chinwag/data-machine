@@ -117,12 +117,18 @@ export default function StepSelectionModal( {
 										<span className="datamachine-modal-card-meta">
 											{ handlerCount }{ ' ' }
 											{ handlerCount === 1
-												? __( 'handler', 'data-machine' )
+												? __(
+														'handler',
+														'data-machine'
+												  )
 												: __(
 														'handlers',
 														'data-machine'
 												  ) }{ ' ' }
-											{ __( 'available', 'data-machine' ) }
+											{ __(
+												'available',
+												'data-machine'
+											) }
 										</span>
 									) }
 								</button>

@@ -72,7 +72,10 @@ export default function HandlerSelectionModal( {
 		>
 			<div className="datamachine-modal-content">
 				<p className="datamachine-modal-header-text">
-					{ __( 'Choose the handler for this step:', 'data-machine' ) }
+					{ __(
+						'Choose the handler for this step:',
+						'data-machine'
+					) }
 				</p>
 
 				{ filteredHandlers.length === 0 && (

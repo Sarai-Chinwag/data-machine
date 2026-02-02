@@ -83,7 +83,11 @@ export default function FlowStepHandler( {
 			) }
 
 			{ showConfigureButton && (
-				<Button variant="secondary" size="small" onClick={ onConfigure }>
+				<Button
+					variant="secondary"
+					size="small"
+					onClick={ onConfigure }
+				>
 					{ __( 'Configure', 'data-machine' ) }
 				</Button>
 			) }

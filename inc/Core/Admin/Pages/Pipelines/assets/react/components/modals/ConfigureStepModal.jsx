@@ -25,6 +25,12 @@ import AIToolsSelector from './configure-step/AIToolsSelector';
 
 /**
  * AI Step Configuration Content
+ * @param root0
+ * @param root0.formState
+ * @param root0.disabledTools
+ * @param root0.setDisabledTools
+ * @param root0.isLoadingTools
+ * @param root0.shouldApplyDefaults
  */
 function AIStepConfig( {
 	formState,
@@ -161,7 +167,7 @@ export default function ConfigureStepModal( {
 				prompt: data.systemPrompt,
 				provider: data.provider,
 				model: data.model,
-				disabledTools: disabledTools,
+				disabledTools,
 				stepType,
 				pipelineId,
 			} );

@@ -8,7 +8,14 @@
  * WordPress dependencies
  */
 import { useState, useEffect, useCallback, useRef } from '@wordpress/element';
-import { Button, Card, CardBody, TextareaControl, TextControl, Notice } from '@wordpress/components';
+import {
+	Button,
+	Card,
+	CardBody,
+	TextareaControl,
+	TextControl,
+	Notice,
+} from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
@@ -46,8 +53,7 @@ export default function FlowStepCard( {
 	// Global config: Use stepTypes hook directly (TanStack Query handles caching)
 	const { data: stepTypes = {} } = useStepTypes();
 	const stepTypeInfo = stepTypes[ pipelineStep.step_type ] || {};
-	const showSettingsDisplay =
-		stepTypeInfo.show_settings_display !== false;
+	const showSettingsDisplay = stepTypeInfo.show_settings_display !== false;
 	const isAiStep = pipelineStep.step_type === 'ai';
 	const isAgentPing = pipelineStep.step_type === 'agent_ping';
 	const aiConfig = isAiStep
@@ -195,7 +201,10 @@ export default function FlowStepCard( {
 			setError( null );
 
 			try {
-				const response = await updateFlowStepConfig( flowStepId, config );
+				const response = await updateFlowStepConfig(
+					flowStepId,
+					config
+				);
 				if ( ! response?.success ) {
 					setError(
 						response?.message ||
@@ -370,9 +379,8 @@ export default function FlowStepCard( {
 					return;
 				}
 
-				saveStepConfig(
-					{ user_message: value },
-					() => setLocalUserMessage( localUserMessage )
+				saveStepConfig( { user_message: value }, () =>
+					setLocalUserMessage( localUserMessage )
 				);
 			}, AUTO_SAVE_DELAY );
 		},
@@ -468,174 +476,183 @@ export default function FlowStepCard( {
 						</strong>
 					</div>
 
-				{ /* AI Configuration Display */ }
-				{ isAiStep && aiConfig && (
-					<div className="datamachine-ai-config-display">
-						<div className="datamachine-ai-provider-info">
-							<strong>
-								{ __( 'AI Provider:', 'data-machine' ) }
-							</strong>{ ' ' }
-							{ aiConfig.provider || 'Not configured' }
-							{ ' | ' }
-							<strong>
-								{ __( 'Model:', 'data-machine' ) }
-							</strong>{ ' ' }
-							{ aiConfig.model || 'Not configured' }
-						</div>
+					{ /* AI Configuration Display */ }
+					{ isAiStep && aiConfig && (
+						<div className="datamachine-ai-config-display">
+							<div className="datamachine-ai-provider-info">
+								<strong>
+									{ __( 'AI Provider:', 'data-machine' ) }
+								</strong>{ ' ' }
+								{ aiConfig.provider || 'Not configured' }
+								{ ' | ' }
+								<strong>
+									{ __( 'Model:', 'data-machine' ) }
+								</strong>{ ' ' }
+								{ aiConfig.model || 'Not configured' }
+							</div>
 
-						{ /* Prompt Field - shows/edits queue[0] */ }
-						<TextareaControl
-							label={ getFieldLabel() }
-							value={ getPromptValue() }
-							onChange={ handleUserMessageChange }
-							placeholder={ __(
-								'Enter user message for AI processing…',
-								'data-machine'
-							) }
-							rows={ 4 }
-							help={ getHelpText() }
-							className={
-								queueHasItems
-									? 'datamachine-queue-linked'
-									: ''
-							}
-						/>
-
-						{ /* Queue Management Button */ }
-						<div className="datamachine-queue-actions">
-							<Button
-								variant="secondary"
-								size="small"
-								onClick={ onQueueClick }
-							>
-								{ __( 'Manage Queue', 'data-machine' ) }
-								{ ' ' }
-								<span
-									className={ `datamachine-queue-count ${
-										queueCount > 0
-											? 'datamachine-queue-count--active'
-											: ''
-									}` }
-								>
-									({ queueCount })
-								</span>
-							</Button>
-						</div>
-					</div>
-				) }
-
-				{ /* Agent Ping Configuration */ }
-				{ isAgentPing && (
-					<div className="datamachine-agent-ping-config">
-						<TextControl
-							label={ __( 'Webhook URL', 'data-machine' ) }
-							value={ localWebhookUrl }
-							onChange={ handleWebhookUrlChange }
-							placeholder={ __(
-								'Enter webhook URL…',
-								'data-machine'
-							) }
-							help={ __(
-								'URL to POST data to (Discord, Slack, custom endpoint).',
-								'data-machine'
-							) }
-							className="datamachine-agent-ping-webhook"
-						/>
-
-						<TextControl
-							label={ __( 'Auth Header Name', 'data-machine' ) }
-							value={ localAuthHeaderName }
-							onChange={ handleAuthHeaderNameChange }
-							help={ __( 'e.g. X-Agent-Token', 'data-machine' ) }
-						/>
-
-						<TextControl
-							label={ __( 'Auth Token', 'data-machine' ) }
-							value={ localAuthToken }
-							onChange={ handleAuthTokenChange }
-						/>
-
-						<TextareaControl
-							label={ getFieldLabel() }
-							value={ getPromptValue() }
-							onChange={ handleAgentPingPromptChange }
-							placeholder={ __(
-								'Enter instructions for the agent…',
-								'data-machine'
-							) }
-							rows={ 4 }
-							help={ getHelpText() }
-							className={
-								queueHasItems
-									? 'datamachine-queue-linked'
-									: ''
-							}
-						/>
-
-						<div className="datamachine-queue-actions">
-							<Button
-								variant="secondary"
-								size="small"
-								onClick={ onQueueClick }
-							>
-								{ __( 'Manage Queue', 'data-machine' ) }
-								{ ' ' }
-								<span
-									className={ `datamachine-queue-count ${
-										queueCount > 0
-											? 'datamachine-queue-count--active'
-											: ''
-									}` }
-								>
-									({ queueCount })
-								</span>
-							</Button>
-						</div>
-					</div>
-				) }
-
-				{ /* Handler Configuration */ }
-				{ showSettingsDisplay && ( () => {
-					const handlerStepTypeInfo =
-						stepTypes[ pipelineStep.step_type ] || {};
-					// Falsy check: PHP false becomes "" in JSON, but undefined means still loading
-					const usesHandler =
-						handlerStepTypeInfo.uses_handler !== '' &&
-						handlerStepTypeInfo.uses_handler !== false;
-
-					// For steps that don't use handlers, use the step_type as the effective handler slug
-					const effectiveHandlerSlug = usesHandler
-						? flowStepConfig.handler_slug
-						: pipelineStep.step_type;
-
-					// Handler-based step with no handler configured - show configure button
-					if ( usesHandler && ! flowStepConfig.handler_slug ) {
-						return (
-							<FlowStepHandler
-								handlerSlug={ null }
-								settingsDisplay={ [] }
-								onConfigure={ () =>
-									onConfigure && onConfigure( flowStepId )
+							{ /* Prompt Field - shows/edits queue[0] */ }
+							<TextareaControl
+								label={ getFieldLabel() }
+								value={ getPromptValue() }
+								onChange={ handleUserMessageChange }
+								placeholder={ __(
+									'Enter user message for AI processing…',
+									'data-machine'
+								) }
+								rows={ 4 }
+								help={ getHelpText() }
+								className={
+									queueHasItems
+										? 'datamachine-queue-linked'
+										: ''
 								}
 							/>
-						);
-					}
 
-					// Show settings display
-					return (
-						<FlowStepHandler
-							handlerSlug={ effectiveHandlerSlug }
-							settingsDisplay={
-								flowStepConfig.settings_display || []
+							{ /* Queue Management Button */ }
+							<div className="datamachine-queue-actions">
+								<Button
+									variant="secondary"
+									size="small"
+									onClick={ onQueueClick }
+								>
+									{ __( 'Manage Queue', 'data-machine' ) }{ ' ' }
+									<span
+										className={ `datamachine-queue-count ${
+											queueCount > 0
+												? 'datamachine-queue-count--active'
+												: ''
+										}` }
+									>
+										({ queueCount })
+									</span>
+								</Button>
+							</div>
+						</div>
+					) }
+
+					{ /* Agent Ping Configuration */ }
+					{ isAgentPing && (
+						<div className="datamachine-agent-ping-config">
+							<TextControl
+								label={ __( 'Webhook URL', 'data-machine' ) }
+								value={ localWebhookUrl }
+								onChange={ handleWebhookUrlChange }
+								placeholder={ __(
+									'Enter webhook URL…',
+									'data-machine'
+								) }
+								help={ __(
+									'URL to POST data to (Discord, Slack, custom endpoint).',
+									'data-machine'
+								) }
+								className="datamachine-agent-ping-webhook"
+							/>
+
+							<TextControl
+								label={ __(
+									'Auth Header Name',
+									'data-machine'
+								) }
+								value={ localAuthHeaderName }
+								onChange={ handleAuthHeaderNameChange }
+								help={ __(
+									'e.g. X-Agent-Token',
+									'data-machine'
+								) }
+							/>
+
+							<TextControl
+								label={ __( 'Auth Token', 'data-machine' ) }
+								value={ localAuthToken }
+								onChange={ handleAuthTokenChange }
+							/>
+
+							<TextareaControl
+								label={ getFieldLabel() }
+								value={ getPromptValue() }
+								onChange={ handleAgentPingPromptChange }
+								placeholder={ __(
+									'Enter instructions for the agent…',
+									'data-machine'
+								) }
+								rows={ 4 }
+								help={ getHelpText() }
+								className={
+									queueHasItems
+										? 'datamachine-queue-linked'
+										: ''
+								}
+							/>
+
+							<div className="datamachine-queue-actions">
+								<Button
+									variant="secondary"
+									size="small"
+									onClick={ onQueueClick }
+								>
+									{ __( 'Manage Queue', 'data-machine' ) }{ ' ' }
+									<span
+										className={ `datamachine-queue-count ${
+											queueCount > 0
+												? 'datamachine-queue-count--active'
+												: ''
+										}` }
+									>
+										({ queueCount })
+									</span>
+								</Button>
+							</div>
+						</div>
+					) }
+
+					{ /* Handler Configuration */ }
+					{ showSettingsDisplay &&
+						( () => {
+							const handlerStepTypeInfo =
+								stepTypes[ pipelineStep.step_type ] || {};
+							// Falsy check: PHP false becomes "" in JSON, but undefined means still loading
+							const usesHandler =
+								handlerStepTypeInfo.uses_handler !== '' &&
+								handlerStepTypeInfo.uses_handler !== false;
+
+							// For steps that don't use handlers, use the step_type as the effective handler slug
+							const effectiveHandlerSlug = usesHandler
+								? flowStepConfig.handler_slug
+								: pipelineStep.step_type;
+
+							// Handler-based step with no handler configured - show configure button
+							if (
+								usesHandler &&
+								! flowStepConfig.handler_slug
+							) {
+								return (
+									<FlowStepHandler
+										handlerSlug={ null }
+										settingsDisplay={ [] }
+										onConfigure={ () =>
+											onConfigure &&
+											onConfigure( flowStepId )
+										}
+									/>
+								);
 							}
-							onConfigure={ () =>
-								onConfigure && onConfigure( flowStepId )
-							}
-							showConfigureButton={ usesHandler }
-							showBadge={ usesHandler }
-						/>
-					);
-				} )() }
+
+							// Show settings display
+							return (
+								<FlowStepHandler
+									handlerSlug={ effectiveHandlerSlug }
+									settingsDisplay={
+										flowStepConfig.settings_display || []
+									}
+									onConfigure={ () =>
+										onConfigure && onConfigure( flowStepId )
+									}
+									showConfigureButton={ usesHandler }
+									showBadge={ usesHandler }
+								/>
+							);
+						} )() }
 				</div>
 			</CardBody>
 		</Card>

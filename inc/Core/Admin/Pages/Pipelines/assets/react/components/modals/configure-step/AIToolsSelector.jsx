@@ -47,7 +47,9 @@ export default function AIToolsSelector( {
 		return tools
 			.filter(
 				( tool ) =>
-					selectedTools.includes( tool.toolId ) && ! tool.configured
+					! selectedTools.includes( tool.toolId ) &&
+					tool.globallyEnabled &&
+					! tool.configured
 			)
 			.map( ( tool ) => tool.label );
 	}, [ selectedTools, tools ] );
@@ -86,7 +88,7 @@ export default function AIToolsSelector( {
 
 			<p className="datamachine-warning-description datamachine-ai-tools-description">
 				{ __(
-					'Select the tools you want to enable for this AI step:',
+					'Select the tools you want to DISABLE for this AI step (unchecked tools will be available):',
 					'data-machine'
 				) }
 			</p>

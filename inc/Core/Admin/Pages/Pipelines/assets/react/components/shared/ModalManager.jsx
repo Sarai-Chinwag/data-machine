@@ -26,7 +26,9 @@ export default function ModalManager( {
 } ) {
 	const { activeModal, modalData, closeModal } = useUIStore();
 
-	if ( ! activeModal ) {return null;}
+	if ( ! activeModal ) {
+		return null;
+	}
 
 	const baseProps = {
 		onClose: closeModal,

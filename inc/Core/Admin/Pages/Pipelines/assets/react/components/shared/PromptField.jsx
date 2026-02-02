@@ -79,8 +79,7 @@ export default function PromptField( {
 
 				if ( result?.success === false ) {
 					setError(
-						result.message ||
-							__( 'Failed to save', 'data-machine' )
+						result.message || __( 'Failed to save', 'data-machine' )
 					);
 					// Revert to last saved value on error
 					setLocalValue( lastSavedValue.current );

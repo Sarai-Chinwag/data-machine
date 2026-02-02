@@ -70,7 +70,10 @@ export default function FileUploadDropzone( {
 		const maxSizeBytes = maxSizeMB * 1024 * 1024;
 		if ( file.size > maxSizeBytes ) {
 			setError(
-				__( `File size exceeds ${ maxSizeMB }MB limit.`, 'data-machine' )
+				__(
+					`File size exceeds ${ maxSizeMB }MB limit.`,
+					'data-machine'
+				)
 			);
 			return;
 		}
@@ -110,7 +113,9 @@ export default function FileUploadDropzone( {
 		e.stopPropagation();
 		setIsDragging( false );
 
-		if ( disabled ) {return;}
+		if ( disabled ) {
+			return;
+		}
 
 		const files = e.dataTransfer.files;
 		if ( files.length > 0 ) {

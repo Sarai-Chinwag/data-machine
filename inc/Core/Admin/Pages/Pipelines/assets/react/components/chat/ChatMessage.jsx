@@ -14,7 +14,9 @@ import { __ } from '@wordpress/i18n';
 const ReactMarkdown = lazy( () => import( 'react-markdown' ) );
 
 function formatTimestamp( isoString ) {
-	if ( ! isoString ) {return null;}
+	if ( ! isoString ) {
+		return null;
+	}
 	const date = new Date( isoString );
 	return date.toLocaleTimeString( [], {
 		hour: '2-digit',

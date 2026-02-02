@@ -58,7 +58,10 @@ export default function PipelineContextFiles( { pipelineId } ) {
 			console.error( 'Load files error:', err );
 			setError(
 				err.message ||
-					__( 'An error occurred while loading files', 'data-machine' )
+					__(
+						'An error occurred while loading files',
+						'data-machine'
+					)
 			);
 		} finally {
 			setLoading( false );
@@ -122,7 +125,9 @@ export default function PipelineContextFiles( { pipelineId } ) {
 			const response = await deleteContextFile( fileId );
 
 			if ( response.success ) {
-				setSuccess( __( 'File deleted successfully!', 'data-machine' ) );
+				setSuccess(
+					__( 'File deleted successfully!', 'data-machine' )
+				);
 				// Reload files list
 				await loadFiles();
 			} else {

@@ -127,7 +127,9 @@ export const useFormState = ( {
 	}, [] );
 
 	const submit = useCallback( async () => {
-		if ( state.isSubmitting ) {return;}
+		if ( state.isSubmitting ) {
+			return;
+		}
 
 		dispatch( { type: 'SET_ERROR', payload: null } );
 		dispatch( { type: 'SET_SUCCESS', payload: null } );
@@ -184,7 +186,9 @@ export const useAsyncOperation = () => {
 
 	const execute = useCallback(
 		async ( operation ) => {
-			if ( isLoading ) {return;}
+			if ( isLoading ) {
+				return;
+			}
 
 			setError( null );
 			setSuccess( null );
@@ -233,7 +237,9 @@ export const useFileUpload = () => {
 
 	const upload = useCallback(
 		async ( uploadFn ) => {
-			if ( isUploading ) {return;}
+			if ( isUploading ) {
+				return;
+			}
 
 			setError( null );
 			setSuccess( null );
@@ -303,7 +309,9 @@ export const useDragDrop = () => {
 		setError( null );
 
 		const files = Array.from( e.dataTransfer.files );
-		if ( files.length === 0 ) {return;}
+		if ( files.length === 0 ) {
+			return;
+		}
 
 		try {
 			onFilesDropped( files );

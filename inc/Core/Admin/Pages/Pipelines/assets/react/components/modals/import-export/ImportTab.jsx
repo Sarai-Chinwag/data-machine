@@ -79,12 +79,11 @@ export default function ImportTab( { onSuccess, onClose } ) {
 				}, 1500 );
 
 				return message;
-			} 
-				throw new Error(
-					response.message ||
-						__( 'Failed to import pipelines', 'data-machine' )
-				);
-			
+			}
+			throw new Error(
+				response.message ||
+					__( 'Failed to import pipelines', 'data-machine' )
+			);
 		} );
 	};
 

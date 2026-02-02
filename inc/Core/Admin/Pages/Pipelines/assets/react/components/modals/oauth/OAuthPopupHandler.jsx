@@ -124,14 +124,11 @@ export default function OAuthPopupHandler( {
 						onSuccess( event.data.account );
 					}
 				} else if ( onError ) {
-						onError(
-							event.data.error ||
-								__(
-									'OAuth authentication failed',
-									'data-machine'
-								)
-						);
-					}
+					onError(
+						event.data.error ||
+							__( 'OAuth authentication failed', 'data-machine' )
+					);
+				}
 
 				// Clean up listener
 				window.removeEventListener(

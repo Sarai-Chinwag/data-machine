@@ -33,7 +33,9 @@ export default function ChatSessionList( {
 	const handleDelete = async ( e, sessionId ) => {
 		e.stopPropagation();
 
-		if ( deletingId ) {return;}
+		if ( deletingId ) {
+			return;
+		}
 
 		setDeletingId( sessionId );
 		try {

@@ -20,7 +20,7 @@
 		/**
 		 * Initialize settings page functionality
 		 */
-		init () {
+		init() {
 			this.bindEvents();
 			this.initTabManager();
 			this.checkAuthCallback();
@@ -29,7 +29,7 @@
 		/**
 		 * Check for OAuth callback parameters and notify opener
 		 */
-		checkAuthCallback () {
+		checkAuthCallback() {
 			const urlParams = new URLSearchParams( window.location.search );
 			const authSuccess = urlParams.get( 'auth_success' );
 			const authError = urlParams.get( 'auth_error' );
@@ -56,7 +56,7 @@
 		/**
 		 * Bind event handlers
 		 */
-		bindEvents () {
+		bindEvents() {
 			// Tool configuration save handler
 			document.addEventListener( 'click', ( e ) => {
 				if (
@@ -100,7 +100,7 @@
 		 * Handle tool configuration save action
 		 * @param e
 		 */
-		handleToolConfigSave ( e ) {
+		handleToolConfigSave( e ) {
 			e.preventDefault();
 
 			const button = e.target;
@@ -211,7 +211,7 @@
 		 * Show error message in modal
 		 * @param message
 		 */
-		showError ( message ) {
+		showError( message ) {
 			const modalBody = document.querySelector(
 				'.datamachine-modal[aria-hidden="false"] .datamachine-modal-body'
 			);
@@ -236,12 +236,12 @@
 		/**
 		 * Initialize tab management functionality
 		 */
-		initTabManager () {
+		initTabManager() {
 			this.tabManager = {
 				/**
 				 * Get active tab from URL or localStorage
 				 */
-				getActiveTab () {
+				getActiveTab() {
 					// First check URL parameter
 					const urlParams = new URLSearchParams(
 						window.location.search
@@ -267,7 +267,7 @@
 				 * Set active tab in localStorage and URL
 				 * @param tab
 				 */
-				setActiveTab ( tab ) {
+				setActiveTab( tab ) {
 					localStorage.setItem(
 						'datamachine_settings_active_tab',
 						tab
@@ -285,7 +285,7 @@
 				 * Show specific tab content
 				 * @param tab
 				 */
-				showTab ( tab ) {
+				showTab( tab ) {
 					// Hide all tab content
 					const tabContents = document.querySelectorAll(
 						'.datamachine-tab-content'
@@ -338,7 +338,7 @@
 		 * Handle tab navigation click
 		 * @param e
 		 */
-		handleTabClick ( e ) {
+		handleTabClick( e ) {
 			e.preventDefault();
 
 			const tab = e.target;
@@ -354,7 +354,7 @@
 		 * Handle form submission to preserve tab state
 		 * @param e
 		 */
-		handleFormSubmit ( e ) {
+		handleFormSubmit( e ) {
 			const activeTab = this.tabManager.getActiveTab();
 
 			// Add hidden field with current tab to preserve state after form submission
@@ -390,6 +390,6 @@
 			}
 		} );
 	} else if ( typeof window.dmSettingsPage !== 'undefined' ) {
-			window.dmSettingsPage.init();
-		}
+		window.dmSettingsPage.init();
+	}
 } )();

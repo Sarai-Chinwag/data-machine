@@ -31,7 +31,7 @@ class FlowsCommand extends BaseCommand {
 	 * ## OPTIONS
 	 *
 	 * [<args>...]
-	 * : Subcommand and arguments. Accepts: list [pipeline_id], get <flow_id>, run <flow_id>, create, queue.
+	 * : Subcommand and arguments. Accepts: list [pipeline_id], get <flow_id>, run <flow_id>, create, delete <flow_id>, update <flow_id>, queue.
 	 *
 	 * [--handler=<slug>]
 	 * : Filter flows using this handler slug (any step that uses this handler).
@@ -97,6 +97,9 @@ class FlowsCommand extends BaseCommand {
 	 * [--dry-run]
 	 * : Validate without creating (create subcommand).
 	 *
+	 * [--yes]
+	 * : Skip confirmation prompt (delete subcommand).
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     # List all flows
@@ -157,6 +160,21 @@ class FlowsCommand extends BaseCommand {
 	 *     # Dry-run validation
 	 *     wp datamachine flows create --pipeline_id=3 --name="Test" --dry-run
 	 *
+	 *     # Delete a flow
+	 *     wp datamachine flows delete 141
+	 *
+	 *     # Delete without confirmation
+	 *     wp datamachine flows delete 141 --yes
+	 *
+	 *     # Update flow name
+	 *     wp datamachine flows update 141 --name="New Name"
+	 *
+	 *     # Update flow scheduling
+	 *     wp datamachine flows update 141 --scheduling=daily
+	 *
+	 *     # Update both name and scheduling
+	 *     wp datamachine flows update 141 --name="Daily Import" --scheduling=daily
+	 *
 	 *     # Add a prompt to the queue (--step auto-resolved if flow has one queueable step)
 	 *     wp datamachine flows queue add 42 "Generate a blog post about AI"
 	 *
@@ -194,6 +212,26 @@ class FlowsCommand extends BaseCommand {
 		// Handle 'queue' subcommand: `flows queue add|list|clear|remove <flow_id> [prompt|index]`.
 		if ( ! empty( $args ) && 'queue' === $args[0] ) {
 			$this->handleQueue( array_slice( $args, 1 ), $assoc_args );
+			return;
+		}
+
+		// Handle 'delete' subcommand: `flows delete 42`.
+		if ( ! empty( $args ) && 'delete' === $args[0] ) {
+			if ( ! isset( $args[1] ) ) {
+				WP_CLI::error( 'Usage: wp datamachine flows delete <flow_id> [--yes]' );
+				return;
+			}
+			$this->deleteFlow( (int) $args[1], $assoc_args );
+			return;
+		}
+
+		// Handle 'update' subcommand: `flows update 42 --name="New Name"`.
+		if ( ! empty( $args ) && 'update' === $args[0] ) {
+			if ( ! isset( $args[1] ) ) {
+				WP_CLI::error( 'Usage: wp datamachine flows update <flow_id> [--name=<name>] [--scheduling=<interval>]' );
+				return;
+			}
+			$this->updateFlow( (int) $args[1], $assoc_args );
 			return;
 		}
 
@@ -422,6 +460,85 @@ class FlowsCommand extends BaseCommand {
 	}
 
 	/**
+	 * Delete a flow.
+	 *
+	 * @param int   $flow_id    Flow ID to delete.
+	 * @param array $assoc_args Associative arguments (--yes).
+	 */
+	private function deleteFlow( int $flow_id, array $assoc_args ): void {
+		if ( $flow_id <= 0 ) {
+			WP_CLI::error( 'flow_id must be a positive integer' );
+			return;
+		}
+
+		$skip_confirm = isset( $assoc_args['yes'] );
+
+		if ( ! $skip_confirm ) {
+			WP_CLI::confirm( sprintf( 'Are you sure you want to delete flow %d?', $flow_id ) );
+		}
+
+		$ability = new \DataMachine\Abilities\FlowAbilities();
+		$result  = $ability->executeDeleteFlow( array( 'flow_id' => $flow_id ) );
+
+		if ( ! $result['success'] ) {
+			WP_CLI::error( $result['error'] ?? 'Failed to delete flow' );
+			return;
+		}
+
+		WP_CLI::success( sprintf( 'Flow %d deleted.', $flow_id ) );
+
+		if ( isset( $result['pipeline_id'] ) ) {
+			WP_CLI::log( sprintf( 'Pipeline ID: %d', $result['pipeline_id'] ) );
+		}
+	}
+
+	/**
+	 * Update a flow's name or scheduling.
+	 *
+	 * @param int   $flow_id    Flow ID to update.
+	 * @param array $assoc_args Associative arguments (--name, --scheduling).
+	 */
+	private function updateFlow( int $flow_id, array $assoc_args ): void {
+		if ( $flow_id <= 0 ) {
+			WP_CLI::error( 'flow_id must be a positive integer' );
+			return;
+		}
+
+		$name       = $assoc_args['name'] ?? null;
+		$scheduling = $assoc_args['scheduling'] ?? null;
+
+		if ( null === $name && null === $scheduling ) {
+			WP_CLI::error( 'Must provide --name or --scheduling to update' );
+			return;
+		}
+
+		$input = array( 'flow_id' => $flow_id );
+
+		if ( null !== $name ) {
+			$input['flow_name'] = $name;
+		}
+
+		if ( null !== $scheduling ) {
+			$input['scheduling_config'] = array( 'interval' => $scheduling );
+		}
+
+		$ability = new \DataMachine\Abilities\FlowAbilities();
+		$result  = $ability->executeUpdateFlow( $input );
+
+		if ( ! $result['success'] ) {
+			WP_CLI::error( $result['error'] ?? 'Failed to update flow' );
+			return;
+		}
+
+		WP_CLI::success( sprintf( 'Flow %d updated.', $flow_id ) );
+		WP_CLI::log( sprintf( 'Name: %s', $result['flow_name'] ?? '' ) );
+
+		if ( isset( $result['flow_data']['scheduling_config']['interval'] ) ) {
+			WP_CLI::log( sprintf( 'Scheduling: %s', $result['flow_data']['scheduling_config']['interval'] ) );
+		}
+	}
+
+	/**
 	 * Output filter info (table format only).
 	 *
 	 * @param array  $filters_applied Applied filters.
@@ -480,12 +597,18 @@ class FlowsCommand extends BaseCommand {
 		);
 
 		if ( ! $flow ) {
-			return array( 'step_id' => null, 'error' => "Flow {$flow_id} not found." );
+			return array(
+				'step_id' => null,
+				'error'   => "Flow {$flow_id} not found.",
+			);
 		}
 
 		$config = json_decode( $flow['flow_config'], true );
 		if ( ! is_array( $config ) ) {
-			return array( 'step_id' => null, 'error' => 'Invalid flow configuration.' );
+			return array(
+				'step_id' => null,
+				'error'   => 'Invalid flow configuration.',
+			);
 		}
 
 		$queueable = array();
@@ -496,7 +619,10 @@ class FlowsCommand extends BaseCommand {
 		}
 
 		if ( count( $queueable ) === 0 ) {
-			return array( 'step_id' => null, 'error' => "Flow {$flow_id} has no queueable steps." );
+			return array(
+				'step_id' => null,
+				'error'   => "Flow {$flow_id} has no queueable steps.",
+			);
 		}
 
 		if ( count( $queueable ) > 1 ) {
@@ -506,7 +632,10 @@ class FlowsCommand extends BaseCommand {
 			);
 		}
 
-		return array( 'step_id' => $queueable[0], 'error' => null );
+		return array(
+			'step_id' => $queueable[0],
+			'error'   => null,
+		);
 	}
 
 	/**

@@ -494,9 +494,9 @@ class ExecuteWorkflowAbility {
 			// Pipeline config (AI settings only)
 			if ( 'ai' === $step['type'] ) {
 				$pipeline_config[ $pipeline_step_id ] = array(
-					'provider'      => $step['provider'] ?? '',
-					'model'         => $step['model'] ?? '',
-					'system_prompt' => $step['system_prompt'] ?? '',
+					'provider'       => $step['provider'] ?? '',
+					'model'          => $step['model'] ?? '',
+					'system_prompt'  => $step['system_prompt'] ?? '',
 					'disabled_tools' => $step['disabled_tools'] ?? array(),
 				);
 			}

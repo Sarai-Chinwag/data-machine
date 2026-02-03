@@ -41,7 +41,7 @@ class FlowQueue {
 					'callback'            => array( self::class, 'handle_list_queue' ),
 					'permission_callback' => array( self::class, 'check_permission' ),
 					'args'                => array(
-						'flow_id' => array(
+						'flow_id'      => array(
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
@@ -60,7 +60,7 @@ class FlowQueue {
 					'callback'            => array( self::class, 'handle_add_to_queue' ),
 					'permission_callback' => array( self::class, 'check_permission' ),
 					'args'                => array(
-						'flow_id' => array(
+						'flow_id'      => array(
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
@@ -72,13 +72,13 @@ class FlowQueue {
 							'sanitize_callback' => 'sanitize_text_field',
 							'description'       => __( 'Flow step ID', 'data-machine' ),
 						),
-						'prompt'  => array(
+						'prompt'       => array(
 							'required'          => false,
 							'type'              => 'string',
 							'description'       => __( 'Single prompt to add', 'data-machine' ),
 							'sanitize_callback' => 'sanitize_textarea_field',
 						),
-						'prompts' => array(
+						'prompts'      => array(
 							'required'    => false,
 							'type'        => 'array',
 							'description' => __( 'Array of prompts to add', 'data-machine' ),
@@ -93,7 +93,7 @@ class FlowQueue {
 					'callback'            => array( self::class, 'handle_clear_queue' ),
 					'permission_callback' => array( self::class, 'check_permission' ),
 					'args'                => array(
-						'flow_id' => array(
+						'flow_id'      => array(
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
@@ -121,7 +121,7 @@ class FlowQueue {
 					'callback'            => array( self::class, 'handle_remove_from_queue' ),
 					'permission_callback' => array( self::class, 'check_permission' ),
 					'args'                => array(
-						'flow_id' => array(
+						'flow_id'      => array(
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
@@ -133,7 +133,7 @@ class FlowQueue {
 							'sanitize_callback' => 'sanitize_text_field',
 							'description'       => __( 'Flow step ID', 'data-machine' ),
 						),
-						'index'   => array(
+						'index'        => array(
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
@@ -146,7 +146,7 @@ class FlowQueue {
 					'callback'            => array( self::class, 'handle_update_queue_item' ),
 					'permission_callback' => array( self::class, 'check_permission' ),
 					'args'                => array(
-						'flow_id' => array(
+						'flow_id'      => array(
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
@@ -158,13 +158,13 @@ class FlowQueue {
 							'sanitize_callback' => 'sanitize_text_field',
 							'description'       => __( 'Flow step ID', 'data-machine' ),
 						),
-						'index'   => array(
+						'index'        => array(
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
 							'description'       => __( 'Queue index (0-based)', 'data-machine' ),
 						),
-						'prompt'  => array(
+						'prompt'       => array(
 							'required'          => true,
 							'type'              => 'string',
 							'description'       => __( 'New prompt text', 'data-machine' ),
@@ -183,22 +183,22 @@ class FlowQueue {
 				'callback'            => array( self::class, 'handle_update_queue_settings' ),
 				'permission_callback' => array( self::class, 'check_permission' ),
 				'args'                => array(
-					'flow_id' => array(
+					'flow_id'       => array(
 						'required'          => true,
 						'type'              => 'integer',
 						'sanitize_callback' => 'absint',
 						'description'       => __( 'Flow ID', 'data-machine' ),
 					),
-					'flow_step_id' => array(
+					'flow_step_id'  => array(
 						'required'          => true,
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
 						'description'       => __( 'Flow step ID', 'data-machine' ),
 					),
 					'queue_enabled' => array(
-						'required'          => true,
-						'type'              => 'boolean',
-						'description'       => __( 'Whether queue pop is enabled for this step', 'data-machine' ),
+						'required'    => true,
+						'type'        => 'boolean',
+						'description' => __( 'Whether queue pop is enabled for this step', 'data-machine' ),
 					),
 				),
 			)

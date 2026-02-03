@@ -194,7 +194,7 @@ class PipelineSteps {
 				'sanitize_callback' => 'sanitize_text_field',
 				'description'       => __( 'AI API key', 'data-machine' ),
 			),
-			'disabled_tools'    => array(
+			'disabled_tools'   => array(
 				'required'    => false,
 				'type'        => 'array',
 				'description' => __( 'Array of disabled tool IDs', 'data-machine' ),
@@ -493,11 +493,11 @@ class PipelineSteps {
 
 		{
 			// Handle AI step configuration
-			$has_provider      = $request->has_param( 'provider' );
-			$has_model         = $request->has_param( 'model' );
-			$has_system_prompt = $request->has_param( 'system_prompt' );
+			$has_provider       = $request->has_param( 'provider' );
+			$has_model          = $request->has_param( 'model' );
+			$has_system_prompt  = $request->has_param( 'system_prompt' );
 			$has_disabled_tools = $request->has_param( 'disabled_tools' );
-			$has_api_key       = $request->has_param( 'ai_api_key' );
+			$has_api_key        = $request->has_param( 'ai_api_key' );
 
 			$effective_provider = $has_provider
 				? sanitize_text_field( $request->get_param( 'provider' ) )
@@ -534,13 +534,13 @@ class PipelineSteps {
 			}
 
 			if ( $has_disabled_tools ) {
-				$disabled_tools_raw  = $request->get_param( 'disabled_tools' );
+				$disabled_tools_raw = $request->get_param( 'disabled_tools' );
 				$sanitized_tool_ids = array();
 				if ( is_array( $disabled_tools_raw ) ) {
 					$sanitized_tool_ids = array_map( 'sanitize_text_field', $disabled_tools_raw );
 				}
 
-				$tools_manager                     = new \DataMachine\Engine\AI\Tools\ToolManager();
+				$tools_manager                      = new \DataMachine\Engine\AI\Tools\ToolManager();
 				$step_config_data['disabled_tools'] = $tools_manager->save_step_tool_selections( $pipeline_step_id, $sanitized_tool_ids );
 			}
 

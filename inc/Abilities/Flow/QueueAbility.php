@@ -64,7 +64,7 @@ class QueueAbility {
 					'type'       => 'object',
 					'required'   => array( 'flow_id', 'flow_step_id', 'prompt' ),
 					'properties' => array(
-						'flow_id' => array(
+						'flow_id'      => array(
 							'type'        => 'integer',
 							'description' => __( 'Flow ID to add prompt to', 'data-machine' ),
 						),
@@ -72,7 +72,7 @@ class QueueAbility {
 							'type'        => 'string',
 							'description' => __( 'Flow step ID to add prompt to', 'data-machine' ),
 						),
-						'prompt'  => array(
+						'prompt'       => array(
 							'type'        => 'string',
 							'description' => __( 'Prompt text to queue', 'data-machine' ),
 						),
@@ -110,7 +110,7 @@ class QueueAbility {
 					'type'       => 'object',
 					'required'   => array( 'flow_id', 'flow_step_id' ),
 					'properties' => array(
-						'flow_id' => array(
+						'flow_id'      => array(
 							'type'        => 'integer',
 							'description' => __( 'Flow ID to list queue for', 'data-machine' ),
 						),
@@ -123,13 +123,13 @@ class QueueAbility {
 				'output_schema'       => array(
 					'type'       => 'object',
 					'properties' => array(
-						'success' => array( 'type' => 'boolean' ),
-						'flow_id' => array( 'type' => 'integer' ),
-						'flow_step_id' => array( 'type' => 'string' ),
-						'queue'   => array( 'type' => 'array' ),
-						'count'   => array( 'type' => 'integer' ),
+						'success'       => array( 'type' => 'boolean' ),
+						'flow_id'       => array( 'type' => 'integer' ),
+						'flow_step_id'  => array( 'type' => 'string' ),
+						'queue'         => array( 'type' => 'array' ),
+						'count'         => array( 'type' => 'integer' ),
 						'queue_enabled' => array( 'type' => 'boolean' ),
-						'error'   => array( 'type' => 'string' ),
+						'error'         => array( 'type' => 'string' ),
 					),
 				),
 				'execute_callback'    => array( $this, 'executeQueueList' ),
@@ -153,7 +153,7 @@ class QueueAbility {
 					'type'       => 'object',
 					'required'   => array( 'flow_id', 'flow_step_id' ),
 					'properties' => array(
-						'flow_id' => array(
+						'flow_id'      => array(
 							'type'        => 'integer',
 							'description' => __( 'Flow ID to clear queue for', 'data-machine' ),
 						),
@@ -166,12 +166,12 @@ class QueueAbility {
 				'output_schema'       => array(
 					'type'       => 'object',
 					'properties' => array(
-						'success'         => array( 'type' => 'boolean' ),
-						'flow_id'         => array( 'type' => 'integer' ),
-						'flow_step_id'    => array( 'type' => 'string' ),
-						'cleared_count'   => array( 'type' => 'integer' ),
-						'message'         => array( 'type' => 'string' ),
-						'error'           => array( 'type' => 'string' ),
+						'success'       => array( 'type' => 'boolean' ),
+						'flow_id'       => array( 'type' => 'integer' ),
+						'flow_step_id'  => array( 'type' => 'string' ),
+						'cleared_count' => array( 'type' => 'integer' ),
+						'message'       => array( 'type' => 'string' ),
+						'error'         => array( 'type' => 'string' ),
 					),
 				),
 				'execute_callback'    => array( $this, 'executeQueueClear' ),
@@ -195,7 +195,7 @@ class QueueAbility {
 					'type'       => 'object',
 					'required'   => array( 'flow_id', 'flow_step_id', 'index' ),
 					'properties' => array(
-						'flow_id' => array(
+						'flow_id'      => array(
 							'type'        => 'integer',
 							'description' => __( 'Flow ID', 'data-machine' ),
 						),
@@ -203,7 +203,7 @@ class QueueAbility {
 							'type'        => 'string',
 							'description' => __( 'Flow step ID', 'data-machine' ),
 						),
-						'index'   => array(
+						'index'        => array(
 							'type'        => 'integer',
 							'description' => __( 'Queue index to remove (0-based)', 'data-machine' ),
 						),
@@ -241,7 +241,7 @@ class QueueAbility {
 					'type'       => 'object',
 					'required'   => array( 'flow_id', 'flow_step_id', 'index', 'prompt' ),
 					'properties' => array(
-						'flow_id' => array(
+						'flow_id'      => array(
 							'type'        => 'integer',
 							'description' => __( 'Flow ID', 'data-machine' ),
 						),
@@ -249,11 +249,11 @@ class QueueAbility {
 							'type'        => 'string',
 							'description' => __( 'Flow step ID', 'data-machine' ),
 						),
-						'index'   => array(
+						'index'        => array(
 							'type'        => 'integer',
 							'description' => __( 'Queue index to update (0-based)', 'data-machine' ),
 						),
-						'prompt'  => array(
+						'prompt'       => array(
 							'type'        => 'string',
 							'description' => __( 'New prompt text', 'data-machine' ),
 						),
@@ -313,14 +313,14 @@ class QueueAbility {
 				'output_schema'       => array(
 					'type'       => 'object',
 					'properties' => array(
-						'success'       => array( 'type' => 'boolean' ),
-						'flow_id'       => array( 'type' => 'integer' ),
-						'flow_step_id'  => array( 'type' => 'string' ),
-						'from_index'    => array( 'type' => 'integer' ),
-						'to_index'      => array( 'type' => 'integer' ),
-						'queue_length'  => array( 'type' => 'integer' ),
-						'message'       => array( 'type' => 'string' ),
-						'error'         => array( 'type' => 'string' ),
+						'success'      => array( 'type' => 'boolean' ),
+						'flow_id'      => array( 'type' => 'integer' ),
+						'flow_step_id' => array( 'type' => 'string' ),
+						'from_index'   => array( 'type' => 'integer' ),
+						'to_index'     => array( 'type' => 'integer' ),
+						'queue_length' => array( 'type' => 'integer' ),
+						'message'      => array( 'type' => 'string' ),
+						'error'        => array( 'type' => 'string' ),
 					),
 				),
 				'execute_callback'    => array( $this, 'executeQueueMove' ),
@@ -344,11 +344,11 @@ class QueueAbility {
 					'type'       => 'object',
 					'required'   => array( 'flow_id', 'flow_step_id', 'queue_enabled' ),
 					'properties' => array(
-						'flow_id' => array(
+						'flow_id'       => array(
 							'type'        => 'integer',
 							'description' => __( 'Flow ID', 'data-machine' ),
 						),
-						'flow_step_id' => array(
+						'flow_step_id'  => array(
 							'type'        => 'string',
 							'description' => __( 'Flow step ID', 'data-machine' ),
 						),
@@ -361,12 +361,12 @@ class QueueAbility {
 				'output_schema'       => array(
 					'type'       => 'object',
 					'properties' => array(
-						'success'      => array( 'type' => 'boolean' ),
-						'flow_id'      => array( 'type' => 'integer' ),
-						'flow_step_id' => array( 'type' => 'string' ),
+						'success'       => array( 'type' => 'boolean' ),
+						'flow_id'       => array( 'type' => 'integer' ),
+						'flow_step_id'  => array( 'type' => 'string' ),
 						'queue_enabled' => array( 'type' => 'boolean' ),
-						'message'      => array( 'type' => 'string' ),
-						'error'        => array( 'type' => 'string' ),
+						'message'       => array( 'type' => 'string' ),
+						'error'         => array( 'type' => 'string' ),
 					),
 				),
 				'execute_callback'    => array( $this, 'executeQueueSettings' ),
@@ -945,13 +945,13 @@ class QueueAbility {
 		);
 
 		return array(
-			'success'       => true,
-			'flow_id'       => $flow_id,
-			'flow_step_id'  => $flow_step_id,
-			'from_index'    => $from_index,
-			'to_index'      => $to_index,
-			'queue_length'  => $queue_length,
-			'message'       => sprintf( 'Moved item from index %d to %d.', $from_index, $to_index ),
+			'success'      => true,
+			'flow_id'      => $flow_id,
+			'flow_step_id' => $flow_step_id,
+			'from_index'   => $from_index,
+			'to_index'     => $to_index,
+			'queue_length' => $queue_length,
+			'message'      => sprintf( 'Moved item from index %d to %d.', $from_index, $to_index ),
 		);
 	}
 
@@ -962,9 +962,9 @@ class QueueAbility {
 	 * @return array Result.
 	 */
 	public function executeQueueSettings( array $input ): array {
-		$flow_id        = $input['flow_id'] ?? null;
-		$flow_step_id   = $input['flow_step_id'] ?? null;
-		$queue_enabled  = $input['queue_enabled'] ?? null;
+		$flow_id       = $input['flow_id'] ?? null;
+		$flow_step_id  = $input['flow_step_id'] ?? null;
+		$queue_enabled = $input['queue_enabled'] ?? null;
 
 		if ( ! is_numeric( $flow_id ) || (int) $flow_id <= 0 ) {
 			return array(
@@ -1003,7 +1003,7 @@ class QueueAbility {
 			return $validation;
 		}
 
-		$flow_config = $validation['flow_config'];
+		$flow_config                                   = $validation['flow_config'];
 		$flow_config[ $flow_step_id ]['queue_enabled'] = $queue_enabled;
 
 		$success = $this->db_flows->update_flow(
@@ -1070,8 +1070,8 @@ class QueueAbility {
 			'info',
 			'Prompt popped from queue',
 			array(
-				'flow_id'          => $flow_id,
-				'remaining_count'  => count( $prompt_queue ),
+				'flow_id'         => $flow_id,
+				'remaining_count' => count( $prompt_queue ),
 			)
 		);
 

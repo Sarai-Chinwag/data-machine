@@ -168,7 +168,7 @@ class PipelineStepAbilities {
 							'type'        => 'string',
 							'description' => __( 'AI model identifier', 'data-machine' ),
 						),
-						'disabled_tools'    => array(
+						'disabled_tools'   => array(
 							'type'        => 'array',
 							'description' => __( 'Array of disabled tool IDs for this step', 'data-machine' ),
 						),
@@ -499,9 +499,9 @@ class PipelineStepAbilities {
 			);
 		}
 
-		$system_prompt = $input['system_prompt'] ?? null;
-		$provider      = $input['provider'] ?? null;
-		$model         = $input['model'] ?? null;
+		$system_prompt  = $input['system_prompt'] ?? null;
+		$provider       = $input['provider'] ?? null;
+		$model          = $input['model'] ?? null;
 		$disabled_tools = $input['disabled_tools'] ?? null;
 
 		if ( null === $system_prompt && null === $provider && null === $model && null === $disabled_tools ) {
@@ -567,7 +567,7 @@ class PipelineStepAbilities {
 			$tools_manager      = new \DataMachine\Engine\AI\Tools\ToolManager();
 
 			$step_config_data['disabled_tools'] = $tools_manager->save_step_tool_selections( $pipeline_step_id, $sanitized_tool_ids );
-			$updated_fields[]                  = 'disabled_tools';
+			$updated_fields[]                   = 'disabled_tools';
 		}
 
 		$pipeline_config[ $pipeline_step_id ] = array_merge( $existing_config, $step_config_data );
@@ -928,7 +928,7 @@ class PipelineStepAbilities {
 				'pipeline_id'      => $pipeline_id,
 				'flow_id'          => $flow_id,
 				'execution_order'  => $step['execution_order'] ?? 0,
-				'disabled_tools'    => $disabled_tools,
+				'disabled_tools'   => $disabled_tools,
 				'handler'          => null,
 			);
 		}

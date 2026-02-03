@@ -75,12 +75,12 @@ trait StepTypeRegistrationTrait {
 				$showSettingsDisplay
 			) {
 				$steps[ $slug ] = array(
-					'label'               => $label,
-					'description'         => $description,
-					'class'               => $class,
-					'position'            => $position,
-					'uses_handler'        => $usesHandler,
-					'has_pipeline_config' => $hasPipelineConfig,
+					'label'                 => $label,
+					'description'           => $description,
+					'class'                 => $class,
+					'position'              => $position,
+					'uses_handler'          => $usesHandler,
+					'has_pipeline_config'   => $hasPipelineConfig,
 					'consume_all_packets'   => $consumeAllPackets,
 					'show_settings_display' => $showSettingsDisplay,
 				);

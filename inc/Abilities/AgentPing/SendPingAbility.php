@@ -35,31 +35,31 @@ class SendPingAbility {
 						'type'       => 'object',
 						'required'   => array( 'webhook_url' ),
 						'properties' => array(
-							'webhook_url'  => array(
+							'webhook_url'      => array(
 								'type'        => array( 'string', 'array' ),
 								'description' => __( 'URL(s) to POST data to. Accepts array or newline-separated string.', 'data-machine' ),
 							),
-							'prompt'       => array(
+							'prompt'           => array(
 								'type'        => 'string',
 								'description' => __( 'Optional instructions for the receiving agent', 'data-machine' ),
 							),
-							'data_packets' => array(
+							'data_packets'     => array(
 								'type'        => 'array',
 								'description' => __( 'Pipeline data packets to include in payload', 'data-machine' ),
 							),
-							'flow_id'      => array(
+							'flow_id'          => array(
 								'type'        => array( 'integer', 'string' ),
 								'description' => __( 'Flow ID for context', 'data-machine' ),
 							),
-							'pipeline_id'  => array(
+							'pipeline_id'      => array(
 								'type'        => array( 'integer', 'string' ),
 								'description' => __( 'Pipeline ID for context', 'data-machine' ),
 							),
-							'job_id'       => array(
+							'job_id'           => array(
 								'type'        => 'integer',
 								'description' => __( 'Job ID for context', 'data-machine' ),
 							),
-							'engine_data'  => array(
+							'engine_data'      => array(
 								'type'        => 'object',
 								'description' => __( 'Engine data including post_id, published_url, etc.', 'data-machine' ),
 							),

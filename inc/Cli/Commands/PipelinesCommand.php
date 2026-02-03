@@ -427,8 +427,8 @@ class PipelinesCommand extends BaseCommand {
 			return;
 		}
 
-		$result        = null;
-		$step_results  = array();
+		$result       = null;
+		$step_results = array();
 
 		// Update name if provided.
 		if ( $has_name ) {

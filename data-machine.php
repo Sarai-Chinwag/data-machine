@@ -156,6 +156,7 @@ function datamachine_run_datamachine_plugin() {
 	require_once __DIR__ . '/inc/Abilities/StepTypeAbilities.php';
 	require_once __DIR__ . '/inc/Abilities/LocalSearchAbilities.php';
 	require_once __DIR__ . '/inc/Abilities/SystemAbilities.php';
+	require_once __DIR__ . '/inc/Abilities/Media/AltTextAbilities.php';
 	require_once __DIR__ . '/inc/Abilities/AgentPingAbilities.php';
 	require_once __DIR__ . '/inc/Abilities/TaxonomyAbilities.php';
 	new \DataMachine\Abilities\AuthAbilities();
@@ -173,6 +174,7 @@ function datamachine_run_datamachine_plugin() {
 	new \DataMachine\Abilities\StepTypeAbilities();
 	new \DataMachine\Abilities\LocalSearchAbilities();
 	new \DataMachine\Abilities\SystemAbilities();
+	new \DataMachine\Abilities\Media\AltTextAbilities();
 	new \DataMachine\Abilities\AgentPingAbilities();
 	new \DataMachine\Abilities\TaxonomyAbilities();
 }

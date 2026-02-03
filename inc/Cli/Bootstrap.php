@@ -19,6 +19,7 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 // Primary commands.
 WP_CLI::add_command( 'datamachine settings', Commands\SettingsCommand::class );
 WP_CLI::add_command( 'datamachine flows', Commands\FlowsCommand::class );
+WP_CLI::add_command( 'datamachine alt-text', Commands\AltTextCommand::class );
 WP_CLI::add_command( 'datamachine jobs', Commands\JobsCommand::class );
 WP_CLI::add_command( 'datamachine pipelines', Commands\PipelinesCommand::class );
 WP_CLI::add_command( 'datamachine posts', Commands\PostsCommand::class );

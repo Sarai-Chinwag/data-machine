@@ -92,7 +92,7 @@ class FlowsCommand extends BaseCommand {
 	 * ---
 	 *
 	 * [--step=<flow_step_id>]
-	 * : Flow step ID for queue subcommands (queue add/list/remove/clear/update/move).
+	 * : Flow step ID for queue subcommands. Optional if flow has exactly one queueable step (auto-resolved).
 	 *
 	 * [--dry-run]
 	 * : Validate without creating (create subcommand).
@@ -157,26 +157,29 @@ class FlowsCommand extends BaseCommand {
 	 *     # Dry-run validation
 	 *     wp datamachine flows create --pipeline_id=3 --name="Test" --dry-run
 	 *
-	 *     # Add a prompt to the queue (requires --step)
+	 *     # Add a prompt to the queue (--step auto-resolved if flow has one queueable step)
+	 *     wp datamachine flows queue add 42 "Generate a blog post about AI"
+	 *
+	 *     # Add with explicit step (required if multiple queueable steps)
 	 *     wp datamachine flows queue add 42 --step=flow-42-step-abc123 "Generate a blog post about AI"
 	 *
-	 *     # List queued prompts for a step
-	 *     wp datamachine flows queue list 42 --step=flow-42-step-abc123
+	 *     # List queued prompts (--step optional)
+	 *     wp datamachine flows queue list 42
 	 *
 	 *     # List queued prompts as JSON
-	 *     wp datamachine flows queue list 42 --step=flow-42-step-abc123 --format=json
+	 *     wp datamachine flows queue list 42 --format=json
 	 *
 	 *     # Remove a prompt from queue by index
-	 *     wp datamachine flows queue remove 42 --step=flow-42-step-abc123 0
+	 *     wp datamachine flows queue remove 42 0
 	 *
 	 *     # Clear all prompts from queue
-	 *     wp datamachine flows queue clear 42 --step=flow-42-step-abc123
+	 *     wp datamachine flows queue clear 42
 	 *
 	 *     # Update a prompt at index 0
-	 *     wp datamachine flows queue update 42 --step=flow-42-step-abc123 0 "Updated prompt text"
+	 *     wp datamachine flows queue update 42 0 "Updated prompt text"
 	 *
 	 *     # Move a prompt from index 2 to index 0 (front of queue)
-	 *     wp datamachine flows queue move 42 --step=flow-42-step-abc123 2 0
+	 *     wp datamachine flows queue move 42 2 0
 	 */
 	public function __invoke( array $args, array $assoc_args ): void {
 		$flow_id     = null;

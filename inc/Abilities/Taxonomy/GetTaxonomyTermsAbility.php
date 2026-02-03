@@ -131,7 +131,7 @@ class GetTaxonomyTermsAbility {
 			);
 		}
 
-		if ( TaxonomyHandler::shouldSkipTaxonomy( $taxonomy ) ) {
+		if ( ! empty( $taxonomy ) && TaxonomyHandler::shouldSkipTaxonomy( $taxonomy ) ) {
 			return array(
 				'success' => false,
 				'error'   => "Taxonomy '{$taxonomy}' is a system taxonomy and cannot be accessed",

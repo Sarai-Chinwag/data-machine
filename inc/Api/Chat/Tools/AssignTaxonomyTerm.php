@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use DataMachine\Core\WordPress\TaxonomyHandler;
 use DataMachine\Engine\AI\Tools\BaseTool;
+use DataMachine\Abilities\Taxonomy\ResolveTermAbility;
 
 class AssignTaxonomyTerm extends BaseTool {
 
@@ -160,27 +161,13 @@ class AssignTaxonomyTerm extends BaseTool {
 	}
 
 	/**
-	 * Resolve term by ID, name, or slug.
+	 * Resolve term by ID, name, or slug using centralized ability.
 	 */
 	private function resolveTerm( string $identifier, string $taxonomy ): ?\WP_Term {
-		// Try as ID
-		if ( is_numeric( $identifier ) ) {
-			$term = get_term( (int) $identifier, $taxonomy );
-			if ( $term && ! is_wp_error( $term ) ) {
-				return $term;
-			}
-		}
+		$result = ResolveTermAbility::resolve( $identifier, $taxonomy, false );
 
-		// Try by name
-		$term = get_term_by( 'name', $identifier, $taxonomy );
-		if ( $term ) {
-			return $term;
-		}
-
-		// Try by slug
-		$term = get_term_by( 'slug', $identifier, $taxonomy );
-		if ( $term ) {
-			return $term;
+		if ( $result['success'] ) {
+			return get_term( $result['term_id'], $taxonomy );
 		}
 
 		return null;

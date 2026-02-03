@@ -12,6 +12,8 @@
 
 namespace DataMachine\Core\WordPress;
 
+use DataMachine\Abilities\Taxonomy\ResolveTermAbility;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -400,43 +402,25 @@ class TaxonomyHandler {
 	 * @return int|false Term ID on success, false on failure
 	 */
 	private function findOrCreateTerm( string $term_identifier, string $taxonomy_name ) {
-		// 1. Check if it's a numeric term ID
-		if ( is_numeric( $term_identifier ) ) {
-			$term = get_term( absint( $term_identifier ), $taxonomy_name );
-			if ( $term && ! is_wp_error( $term ) ) {
-				return $term->term_id;
-			}
+		// Use centralized resolve-term ability for all term resolution.
+		$result = ResolveTermAbility::resolve( $term_identifier, $taxonomy_name, true );
+
+		if ( $result['success'] ) {
+			return $result['term_id'];
 		}
 
-		// 2. Try by name (exact match)
-		$term = get_term_by( 'name', $term_identifier, $taxonomy_name );
-		if ( $term ) {
-			return $term->term_id;
-		}
+		do_action(
+			'datamachine_log',
+			'warning',
+			'Failed to resolve taxonomy term',
+			array(
+				'taxonomy'        => $taxonomy_name,
+				'term_identifier' => $term_identifier,
+				'error'           => $result['error'] ?? 'Unknown error',
+			)
+		);
 
-		// 3. Try by slug (handles cases where AI provides slug instead of name)
-		$term = get_term_by( 'slug', $term_identifier, $taxonomy_name );
-		if ( $term ) {
-			return $term->term_id;
-		}
-
-		// 4. No existing term found - create new one
-		$term_result = wp_insert_term( $term_identifier, $taxonomy_name );
-		if ( is_wp_error( $term_result ) ) {
-			do_action(
-				'datamachine_log',
-				'warning',
-				'Failed to create taxonomy term',
-				array(
-					'taxonomy'        => $taxonomy_name,
-					'term_identifier' => $term_identifier,
-					'error'           => $term_result->get_error_message(),
-				)
-			);
-			return false;
-		}
-
-		return $term_result['term_id'];
+		return false;
 	}
 
 	private function setPostTerms( int $post_id, array $term_ids, string $taxonomy_name ) {

@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use DataMachine\Core\WordPress\TaxonomyHandler;
 use DataMachine\Engine\AI\Tools\BaseTool;
+use DataMachine\Abilities\Taxonomy\ResolveTermAbility;
 
 class CreateTaxonomyTerm extends BaseTool {
 
@@ -104,9 +105,10 @@ class CreateTaxonomyTerm extends BaseTool {
 			);
 		}
 
-		// Check if term already exists
-		$existing_term = get_term_by( 'name', $name, $taxonomy );
-		if ( $existing_term ) {
+		// Check if term already exists using centralized resolution (ID, name, or slug).
+		$resolved = ResolveTermAbility::resolve( $name, $taxonomy, false );
+		if ( $resolved['success'] ) {
+			$existing_term = get_term( $resolved['term_id'], $taxonomy );
 			return array(
 				'success'   => true,
 				'data'      => array(
@@ -189,26 +191,9 @@ class CreateTaxonomyTerm extends BaseTool {
 	 * @return int|false Term ID or false if not found
 	 */
 	private function resolveParentTerm( $parent, string $taxonomy ) {
-		// Try as ID first
-		if ( is_numeric( $parent ) ) {
-			$term = get_term( (int) $parent, $taxonomy );
-			if ( $term && ! is_wp_error( $term ) ) {
-				return $term->term_id;
-			}
-		}
+		// Use centralized resolution for parent term lookup.
+		$result = ResolveTermAbility::resolve( (string) $parent, $taxonomy, false );
 
-		// Try by name
-		$term = get_term_by( 'name', $parent, $taxonomy );
-		if ( $term ) {
-			return $term->term_id;
-		}
-
-		// Try by slug
-		$term = get_term_by( 'slug', $parent, $taxonomy );
-		if ( $term ) {
-			return $term->term_id;
-		}
-
-		return false;
+		return $result['success'] ? $result['term_id'] : false;
 	}
 }

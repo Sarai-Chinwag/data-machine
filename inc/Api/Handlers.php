@@ -185,9 +185,13 @@ class Handlers {
 			);
 		}
 
-		// Get field state from backend (single source of truth)
+		// Get site-wide handler defaults for this handler
+		$site_defaults    = $handler_abilities->getSiteDefaults();
+		$handler_defaults = $site_defaults[ $handler_slug ] ?? array();
+
+		// Get field state, using site-wide defaults as base settings
 		$settings_display_service = new \DataMachine\Core\Steps\Settings\SettingsDisplayService();
-		$field_state              = $settings_display_service->getFieldState( $handler_slug );
+		$field_state              = $settings_display_service->getFieldState( $handler_slug, $handler_defaults );
 
 		// Get AI tool definition
 		$ai_tool = null;

@@ -84,10 +84,12 @@ class JobStatus {
 	}
 
 	/**
-	 * Create a failed status.
+	 * Create a failed status with optional reason.
+	 *
+	 * @param ?string $reason Optional failure reason for compound status.
 	 */
-	public static function failed(): self {
-		return new self( self::FAILED );
+	public static function failed( ?string $reason = null ): self {
+		return new self( self::FAILED, $reason );
 	}
 
 	/**

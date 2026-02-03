@@ -372,8 +372,9 @@ class JobsOperations {
 		}
 
 		if ( ! empty( $criteria['failed'] ) ) {
+			$failed_pattern = $this->wpdb->esc_like( 'failed' ) . '%';
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-			$result = $this->wpdb->query( $this->wpdb->prepare( 'DELETE FROM %i WHERE status = %s', $this->table_name, 'failed' ) );
+			$result = $this->wpdb->query( $this->wpdb->prepare( 'DELETE FROM %i WHERE status LIKE %s', $this->table_name, $failed_pattern ) );
 		} else {
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$result = $this->wpdb->query( $this->wpdb->prepare( 'DELETE FROM %i', $this->table_name ) );
@@ -602,7 +603,7 @@ class JobsOperations {
 
 		// Count consecutive failures from most recent
 		foreach ( $jobs as $job ) {
-			if ( 'failed' === $job['status'] ) {
+			if ( \DataMachine\Core\JobStatus::isStatusFailure( $job['status'] ) ) {
 				++$result['consecutive_failures'];
 			} else {
 				break;
@@ -611,7 +612,7 @@ class JobsOperations {
 
 		// Count consecutive no_items from most recent
 		foreach ( $jobs as $job ) {
-			if ( 'completed_no_items' === $job['status'] ) {
+			if ( str_starts_with( $job['status'], 'completed_no_items' ) ) {
 				++$result['consecutive_no_items'];
 			} else {
 				break;

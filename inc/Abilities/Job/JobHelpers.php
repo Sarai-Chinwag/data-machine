@@ -126,8 +126,9 @@ trait JobHelpers {
 			$jobs_table = $wpdb->prefix . 'datamachine_jobs';
 
 			if ( ! empty( $criteria['failed'] ) ) {
+				$failed_pattern = $wpdb->esc_like( 'failed' ) . '%';
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-				$job_ids_to_delete = $wpdb->get_col( $wpdb->prepare( 'SELECT job_id FROM %i WHERE status = %s', $jobs_table, 'failed' ) );
+				$job_ids_to_delete = $wpdb->get_col( $wpdb->prepare( 'SELECT job_id FROM %i WHERE status LIKE %s', $jobs_table, $failed_pattern ) );
 			} elseif ( ! empty( $criteria['all'] ) ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 				$job_ids_to_delete = $wpdb->get_col( $wpdb->prepare( 'SELECT job_id FROM %i', $jobs_table ) );

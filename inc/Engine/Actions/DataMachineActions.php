@@ -122,7 +122,10 @@ function datamachine_register_core_actions() {
 			$db_jobs            = new \DataMachine\Core\Database\Jobs\Jobs();
 			$db_processed_items = new \DataMachine\Core\Database\ProcessedItems\ProcessedItems();
 
-			$success = $db_jobs->complete_job( $job_id, \DataMachine\Core\JobStatus::FAILED );
+			// Use most specific reason: context_data['reason'] > $reason > null
+			$specific_reason = $context_data['reason'] ?? $reason;
+			$status          = \DataMachine\Core\JobStatus::failed( $specific_reason );
+			$success         = $db_jobs->complete_job( $job_id, $status->toString() );
 
 			if ( ! $success ) {
 				do_action(

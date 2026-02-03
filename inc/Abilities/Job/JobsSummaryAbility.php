@@ -81,6 +81,7 @@ class JobsSummaryAbility {
 				CASE
 					WHEN status LIKE 'agent_skipped%' THEN 'agent_skipped'
 					WHEN status LIKE 'completed_no_items%' THEN 'completed_no_items'
+					WHEN status LIKE 'failed%' THEN 'failed'
 					ELSE status
 				END as base_status,
 				COUNT(*) as count

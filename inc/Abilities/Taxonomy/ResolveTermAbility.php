@@ -10,52 +10,58 @@
 
 namespace DataMachine\Abilities\Taxonomy;
 
+use DataMachine\Core\WordPress\TaxonomyHandler;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 class ResolveTermAbility {
 
-	private const SYSTEM_TAXONOMIES = array( 'post_format', 'nav_menu', 'link_category' );
-
 	public function __construct() {
-		add_action( 'wp_abilities_init', array( $this, 'register' ) );
+		add_action( 'datamachine_register_abilities', array( $this, 'register' ) );
 	}
 
 	public function register(): void {
 		wp_register_ability(
 			'datamachine/resolve-term',
 			array(
-				'label'        => __( 'Resolve Term', 'data-machine' ),
-				'description'  => __( 'Find or create a taxonomy term by ID, name, or slug. Single source of truth for term resolution.', 'data-machine' ),
-				'category'     => 'datamachine',
-				'callback'     => array( $this, 'execute' ),
-				'input_schema' => array(
-					'identifier' => array(
-						'type'        => 'string',
-						'required'    => true,
-						'description' => 'Term identifier - can be numeric ID, name, or slug',
+				'label'               => __( 'Resolve Term', 'data-machine' ),
+				'description'         => __( 'Find or create a taxonomy term by ID, name, or slug. Single source of truth for term resolution.', 'data-machine' ),
+				'category'            => 'datamachine',
+				'input_schema'        => array(
+					'type'       => 'object',
+					'properties' => array(
+						'identifier' => array(
+							'type'        => 'string',
+							'description' => __( 'Term identifier - can be numeric ID, name, or slug', 'data-machine' ),
+						),
+						'taxonomy'   => array(
+							'type'        => 'string',
+							'description' => __( 'Taxonomy name (category, post_tag, etc.)', 'data-machine' ),
+						),
+						'create'     => array(
+							'type'        => 'boolean',
+							'default'     => false,
+							'description' => __( 'Create term if not found', 'data-machine' ),
+						),
 					),
-					'taxonomy'   => array(
-						'type'        => 'string',
-						'required'    => true,
-						'description' => 'Taxonomy name (category, post_tag, etc.)',
-					),
-					'create'     => array(
-						'type'        => 'boolean',
-						'default'     => false,
-						'description' => 'Create term if not found',
+					'required'   => array( 'identifier', 'taxonomy' ),
+				),
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'success'  => array( 'type' => 'boolean' ),
+						'term_id'  => array( 'type' => 'integer' ),
+						'name'     => array( 'type' => 'string' ),
+						'slug'     => array( 'type' => 'string' ),
+						'taxonomy' => array( 'type' => 'string' ),
+						'created'  => array( 'type' => 'boolean' ),
+						'error'    => array( 'type' => 'string' ),
 					),
 				),
-				'output_schema' => array(
-					'success'  => array( 'type' => 'boolean' ),
-					'term_id'  => array( 'type' => 'integer' ),
-					'name'     => array( 'type' => 'string' ),
-					'slug'     => array( 'type' => 'string' ),
-					'taxonomy' => array( 'type' => 'string' ),
-					'created'  => array( 'type' => 'boolean' ),
-					'error'    => array( 'type' => 'string' ),
-				),
+				'execute_callback'    => array( $this, 'execute' ),
+				'permission_callback' => array( $this, 'checkPermission' ),
 			)
 		);
 	}
@@ -90,7 +96,7 @@ class ResolveTermAbility {
 			return $this->error_response( "Taxonomy '{$taxonomy}' does not exist" );
 		}
 
-		if ( in_array( $taxonomy, self::SYSTEM_TAXONOMIES, true ) ) {
+		if ( TaxonomyHandler::shouldSkipTaxonomy( $taxonomy ) ) {
 			return $this->error_response( "Cannot resolve terms in system taxonomy '{$taxonomy}'" );
 		}
 
@@ -169,6 +175,18 @@ class ResolveTermAbility {
 			'success' => false,
 			'error'   => $message,
 		);
+	}
+
+	/**
+	 * Check permission for this ability.
+	 *
+	 * @return bool True if user has permission.
+	 */
+	public function checkPermission(): bool {
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return true;
+		}
+		return current_user_can( 'manage_options' );
 	}
 
 	/**

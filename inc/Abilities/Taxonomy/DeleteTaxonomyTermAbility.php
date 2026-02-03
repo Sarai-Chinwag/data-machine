@@ -119,14 +119,15 @@ class DeleteTaxonomyTermAbility {
 			);
 		}
 
-		// Find the term
-		$term = $this->resolveTerm( $term_identifier, $taxonomy );
-		if ( ! $term ) {
+		// Find the term using centralized resolver
+		$resolved = ResolveTermAbility::resolve( $term_identifier, $taxonomy, false );
+		if ( ! $resolved['success'] ) {
 			return array(
 				'success' => false,
-				'error'   => "Term '{$term_identifier}' not found in taxonomy '{$taxonomy}'",
+				'error'   => $resolved['error'] ?? "Term '{$term_identifier}' not found in taxonomy '{$taxonomy}'",
 			);
 		}
+		$term = get_term( $resolved['term_id'], $taxonomy );
 
 		// Validate reassign term if provided
 		if ( null !== $reassign ) {
@@ -189,33 +190,6 @@ class DeleteTaxonomyTermAbility {
 			'deleted'   => true,
 			'reassigned' => null !== $reassign ? absint( $reassign ) : null,
 		);
-	}
-
-	/**
-	 * Resolve term by ID, name, or slug.
-	 */
-	private function resolveTerm( string $identifier, string $taxonomy ): ?\WP_Term {
-		// Try as ID
-		if ( is_numeric( $identifier ) ) {
-			$term = get_term( (int) $identifier, $taxonomy );
-			if ( $term && ! is_wp_error( $term ) ) {
-				return $term;
-			}
-		}
-
-		// Try by name
-		$term = get_term_by( 'name', $identifier, $taxonomy );
-		if ( $term ) {
-			return $term;
-		}
-
-		// Try by slug
-		$term = get_term_by( 'slug', $identifier, $taxonomy );
-		if ( $term ) {
-			return $term;
-		}
-
-		return null;
 	}
 
 	/**

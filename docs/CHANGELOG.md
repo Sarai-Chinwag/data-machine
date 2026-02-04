@@ -2,6 +2,11 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [0.20.4] - 2026-02-04
+
+### Fixed
+- allow Action Scheduler queue runs to pass ability permission checks
+
 ## [0.20.3] - 2026-02-04
 
 ### Added

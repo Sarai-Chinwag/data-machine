@@ -2,6 +2,15 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [0.20.2] - 2026-02-04
+
+### Changed
+- Remove --allow-root from examples, add note about root usage
+- Add Data Machine agent skill in OpenClaw format
+
+### Fixed
+- handle WP_Error from ability execution
+
 ## [0.20.1] - 2026-02-03
 
 ### Added

@@ -23,12 +23,27 @@ add_action(
 
 		$table = $wpdb->prefix . 'actionscheduler_claims';
 
-		// Delete claims older than 1 hour.
+		/**
+		 * Filter the maximum age (in seconds) for Action Scheduler claims before cleanup.
+		 *
+		 * Claims older than this threshold are considered stale/orphaned and will be deleted.
+		 * Use a conservative value to avoid invalidating long-running actions.
+		 *
+		 * @since 0.20.4
+		 *
+		 * @param int $max_age_seconds Maximum claim age in seconds. Default DAY_IN_SECONDS (86400).
+		 */
+		$max_age_seconds = apply_filters( 'datamachine_stale_claim_max_age', DAY_IN_SECONDS );
+
+		// Calculate cutoff timestamp in UTC.
+		$cutoff_timestamp = time() - absint( $max_age_seconds );
+		$cutoff_datetime  = gmdate( 'Y-m-d H:i:s', $cutoff_timestamp );
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$table} WHERE date_created_gmt < %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS )
+				$cutoff_datetime
 			)
 		);
 
@@ -37,7 +52,11 @@ add_action(
 				'datamachine_log',
 				'info',
 				'ActionScheduler: Cleaned up stale claims',
-				array( 'claims_deleted' => $deleted )
+				array(
+					'claims_deleted'  => $deleted,
+					'max_age_seconds' => $max_age_seconds,
+					'cutoff_datetime' => $cutoff_datetime,
+				)
 			);
 		}
 	}

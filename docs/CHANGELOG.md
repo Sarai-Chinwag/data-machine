@@ -3,6 +3,11 @@
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
 
+## Unreleased
+
+### Added
+- add datamachine_session_title_prompt filter for customizing session title generation
+
 ## [0.21.0] - 2026-02-05
 
 ### Added

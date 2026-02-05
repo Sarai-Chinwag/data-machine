@@ -407,10 +407,39 @@ class SystemAbilities {
 			$context .= "\n\nAssistant: " . mb_substr($first_assistant_response, 0, 500);
 		}
 
+		$default_prompt = "Generate a concise title (3-6 words) for this conversation. Return ONLY the title text, nothing else.\n\n" . $context;
+
+		/**
+		 * Filter the prompt used for AI session title generation.
+		 *
+		 * Allows plugins to customize or completely replace the title generation prompt.
+		 * Return a different prompt to change title style (e.g., code names like 'azure-phoenix').
+		 *
+		 * @since 0.21.1
+		 *
+		 * @param string $prompt  The default prompt including conversation context.
+		 * @param array  $context {
+		 *     Context data for prompt customization.
+		 *
+		 *     @type string $first_user_message       The first user message (truncated to 500 chars).
+		 *     @type string $first_assistant_response The first assistant response (truncated to 500 chars).
+		 *     @type string $conversation_context     Formatted "User: ... Assistant: ..." context string.
+		 * }
+		 */
+		$prompt = apply_filters(
+			'datamachine_session_title_prompt',
+			$default_prompt,
+			array(
+				'first_user_message'       => $first_user_message,
+				'first_assistant_response' => $first_assistant_response,
+				'conversation_context'     => $context,
+			)
+		);
+
 		$messages = array(
 			array(
 				'role'    => 'user',
-				'content' => "Generate a concise title (3-6 words) for this conversation. Return ONLY the title text, nothing else.\n\n" . $context,
+				'content' => $prompt,
 			),
 		);
 

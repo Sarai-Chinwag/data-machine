@@ -325,6 +325,52 @@ add_filter('datamachine_directives', function($directives) {
 
 **Note**: All AI request building now uses `RequestBuilder::build()` to ensure consistent request structure and directive application. Direct calls to `chubes_ai_request` filter are deprecated - use RequestBuilder instead.
 
+### `datamachine_session_title_prompt`
+
+**Purpose**: Customize or replace the AI prompt used for generating session titles.
+
+**Parameters**:
+- `$default_prompt` (string) - The default prompt for title generation
+- `$context` (array) - Conversation context with the following keys:
+  - `first_user_message` (string) - The first message from the user
+  - `first_assistant_response` (string) - The assistant's first response
+  - `conversation_context` (string) - Combined conversation context
+
+**Return**: String - The prompt to use for title generation
+
+**Location**: `/inc/Abilities/SystemAbilities.php`
+
+**Usage Example**:
+```php
+// Generate code names instead of descriptive titles
+add_filter('datamachine_session_title_prompt', function($prompt, $context) {
+    return "Generate a two-word code name like 'cosmic-owl' or 'azure-phoenix'. " .
+           "Return ONLY the code name, nothing else.";
+}, 10, 2);
+
+// Add custom context to the default prompt
+add_filter('datamachine_session_title_prompt', function($prompt, $context) {
+    return $prompt . "\n\nAdditional instruction: Keep titles under 5 words.";
+}, 10, 2);
+
+// Generate privacy-safe titles without chat content
+add_filter('datamachine_session_title_prompt', function($prompt, $context) {
+    $words = ['cosmic', 'azure', 'golden', 'silent', 'swift'];
+    $nouns = ['owl', 'phoenix', 'river', 'mountain', 'forest'];
+    return sprintf(
+        "Return exactly this title: %s-%s",
+        $words[array_rand($words)],
+        $nouns[array_rand($nouns)]
+    );
+}, 10, 2);
+```
+
+**Use Cases**:
+- Generate code names instead of descriptive titles
+- Add custom instructions to title generation
+- Create privacy-safe titles that don't expose chat content
+- Customize title style per site or plugin
+
 ## Pipeline Operations Filters
 
 ### `datamachine_create_pipeline`

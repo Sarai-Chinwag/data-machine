@@ -3,6 +3,15 @@
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
 
+## [0.21.3] - 2026-02-08
+
+### Changed
+- Revert "release: v0.21.2"
+- v0.21.2
+
+### Fixed
+- Fix prompt display when queue enabled but empty
+
 ## [0.21.2] - 2026-02-08
 
 - CLI: Added --set-prompt option to flows update command for updating handler step prompts via WP-CLI

@@ -3,6 +3,10 @@
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
 
+## Unreleased
+
+- Fix: pin webpack to 5.104.1 for security; remove legacy CircleCI config
+
 ## [0.21.3] - 2026-02-08
 
 ### Changed

@@ -16,6 +16,7 @@
 	},
 	"overrides": {
 		"js-yaml": "^4.1.1",
+		"webpack": "5.104.1",
 		"webpack-dev-server": "^5.2.1"
 	},
 	"dependencies": {

@@ -6,9 +6,9 @@
  * Enables faster parallel execution by allowing multiple concurrent batches.
  *
  * Settings:
- * - concurrent_batches: Number of batches that can run simultaneously (default: 1)
+ * - concurrent_batches: Number of batches that can run simultaneously (default: 3)
  * - batch_size: Number of actions claimed per batch (default: 25)
- * - time_limit: Maximum seconds per batch execution (default: 30)
+ * - time_limit: Maximum seconds per batch execution (default: 60)
  *
  * @package DataMachine\Core\ActionScheduler
  * @since 0.21.0
@@ -90,24 +90,4 @@ add_filter(
 	}
 );
 
-/**
- * Log queue tuning settings on init (debug level).
- */
-add_action(
-	'action_scheduler_init',
-	function () {
-		$defaults = datamachine_get_queue_tuning_defaults();
-		$settings = array(
-			'concurrent_batches' => datamachine_get_queue_tuning( 'concurrent_batches', $defaults['concurrent_batches'] ),
-			'batch_size'         => datamachine_get_queue_tuning( 'batch_size', $defaults['batch_size'] ),
-			'time_limit'         => datamachine_get_queue_tuning( 'time_limit', $defaults['time_limit'] ),
-		);
-
-		do_action(
-			'datamachine_log',
-			'debug',
-			'Action Scheduler queue tuning applied',
-			$settings
-		);
-	}
-);
+// Queue tuning is applied silently via filters above.

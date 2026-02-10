@@ -107,6 +107,15 @@ class SettingsAbilities {
 						'max_turns'                   => array( 'type' => 'integer' ),
 						'enabled_tools'               => array( 'type' => 'object' ),
 						'ai_provider_keys'            => array( 'type' => 'object' ),
+						'queue_tuning'                => array(
+							'type'        => 'object',
+							'description' => 'Action Scheduler queue tuning settings',
+							'properties'  => array(
+								'concurrent_batches' => array( 'type' => 'integer' ),
+								'batch_size'         => array( 'type' => 'integer' ),
+								'time_limit'         => array( 'type' => 'integer' ),
+							),
+						),
 					),
 				),
 				'output_schema'       => array(
@@ -341,6 +350,11 @@ class SettingsAbilities {
 				'max_turns'                   => $settings['max_turns'] ?? 12,
 				'enabled_tools'               => $settings['enabled_tools'] ?? array(),
 				'ai_provider_keys'            => $masked_keys,
+				'queue_tuning'                => $settings['queue_tuning'] ?? array(
+					'concurrent_batches' => 3,
+					'batch_size'         => 25,
+					'time_limit'         => 60,
+				),
 			),
 			'global_tools' => $tools_keyed,
 		);
@@ -430,6 +444,28 @@ class SettingsAbilities {
 				}
 			}
 			apply_filters( 'chubes_ai_provider_api_keys', $current_keys );
+		}
+
+		// Queue tuning settings for Action Scheduler
+		if ( isset( $input['queue_tuning'] ) && is_array( $input['queue_tuning'] ) ) {
+			$tuning = $all_settings['queue_tuning'] ?? array();
+
+			if ( isset( $input['queue_tuning']['concurrent_batches'] ) ) {
+				$batches                     = absint( $input['queue_tuning']['concurrent_batches'] );
+				$tuning['concurrent_batches'] = max( 1, min( 10, $batches ) ); // 1-10 range
+			}
+
+			if ( isset( $input['queue_tuning']['batch_size'] ) ) {
+				$size                 = absint( $input['queue_tuning']['batch_size'] );
+				$tuning['batch_size'] = max( 10, min( 200, $size ) ); // 10-200 range
+			}
+
+			if ( isset( $input['queue_tuning']['time_limit'] ) ) {
+				$limit                = absint( $input['queue_tuning']['time_limit'] );
+				$tuning['time_limit'] = max( 15, min( 300, $limit ) ); // 15-300 seconds range
+			}
+
+			$all_settings['queue_tuning'] = $tuning;
 		}
 
 		update_option( 'datamachine_settings', $all_settings );

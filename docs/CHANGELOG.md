@@ -3,6 +3,14 @@
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
 
+## [0.22.0] - 2026-02-11
+
+- feat(agent-ping): add reply_to field for custom channel routing (#111)
+- feat(queue): add queue-validate ability to check for duplicates (#110)
+- refactor(FlowStepCard): unify Agent Ping config handlers
+- Add Queue Performance settings to admin UI
+- Remove noisy queue tuning log
+
 ## [0.21.5] - 2026-02-10
 
 - Queue validation: queue-add ability now checks for duplicate prompts in queue and similar existing posts before adding

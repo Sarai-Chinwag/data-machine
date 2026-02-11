@@ -541,7 +541,6 @@ function datamachine_register_execution_engine() {
 					'debug',
 					'Next step scheduled via Action Scheduler',
 					array(
-						'agent_type'   => 'system',
 						'job_id'       => $job_id,
 						'flow_step_id' => $flow_step_id,
 						'action_id'    => $action_id,
@@ -586,7 +585,6 @@ function datamachine_register_execution_engine() {
 					'info',
 					'Flow schedule cleared (set to manual)',
 					array(
-						'agent_type' => 'system',
 						'flow_id'    => $flow_id,
 					)
 				);
@@ -617,7 +615,6 @@ function datamachine_register_execution_engine() {
 						'info',
 						'Flow scheduled for one-time execution',
 						array(
-							'agent_type'     => 'system',
 							'flow_id'        => $flow_id,
 							'timestamp'      => $interval_or_timestamp,
 							'scheduled_time' => wp_date( 'c', $interval_or_timestamp ),
@@ -636,7 +633,6 @@ function datamachine_register_execution_engine() {
 						'error',
 						'Invalid schedule interval',
 						array(
-							'agent_type'          => 'system',
 							'flow_id'             => $flow_id,
 							'interval'            => $interval_or_timestamp,
 							'available_intervals' => array_keys( $intervals ),
@@ -667,7 +663,6 @@ function datamachine_register_execution_engine() {
 						'info',
 						'Flow scheduled for recurring execution',
 						array(
-							'agent_type'       => 'system',
 							'flow_id'          => $flow_id,
 							'interval'         => $interval_or_timestamp,
 							'interval_seconds' => $interval_seconds,

@@ -348,7 +348,6 @@ add_action(
 			'error',
 			'AI Library Error: ' . $error_data['component'] . ' - ' . $error_data['message'],
 			array(
-				'agent_type' => 'system',
 				'component'  => $error_data['component'],
 				'message'    => $error_data['message'],
 				'context'    => $error_data['context'],

@@ -99,7 +99,6 @@ class AuthAbilities {
 				'debug',
 				'Resolved auth provider key differs from handler slug',
 				array(
-					'agent_type'        => 'system',
 					'handler_slug'      => $handler_slug,
 					'auth_provider_key' => $auth_provider_key,
 				)

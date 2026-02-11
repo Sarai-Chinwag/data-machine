@@ -122,7 +122,6 @@ class Jobs {
 			'debug',
 			'Created jobs database table with pipeline+flow architecture',
 			array(
-				'agent_type' => 'system',
 				'table_name' => $table_name,
 				'action'     => 'create_table',
 			)
@@ -169,7 +168,6 @@ class Jobs {
 				'info',
 				'Migrated jobs.status column to varchar(255)',
 				array(
-					'agent_type'    => 'system',
 					'table_name'    => $table_name,
 					'previous_size' => $columns['status']->CHARACTER_MAXIMUM_LENGTH,
 				)
@@ -185,7 +183,6 @@ class Jobs {
 				'info',
 				'Migrated jobs.pipeline_id column to varchar(20) for direct execution support',
 				array(
-					'agent_type' => 'system',
 					'table_name' => $table_name,
 				)
 			);
@@ -200,7 +197,6 @@ class Jobs {
 				'info',
 				'Migrated jobs.flow_id column to varchar(20) for direct execution support',
 				array(
-					'agent_type' => 'system',
 					'table_name' => $table_name,
 				)
 			);

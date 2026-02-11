@@ -50,6 +50,12 @@ class AgentPingSettings extends SettingsHandler {
 				'description' => __( 'Optional token/key to send in the auth header.', 'data-machine' ),
 				'default'     => '',
 			),
+			'reply_to'         => array(
+				'type'        => 'text',
+				'label'       => __( 'Reply To Channel', 'data-machine' ),
+				'description' => __( 'Optional channel ID for response routing (e.g., Discord channel ID).', 'data-machine' ),
+				'default'     => '',
+			),
 		);
 	}
 }

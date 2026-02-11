@@ -77,6 +77,10 @@ class SendPingAbility {
 								'type'        => 'string',
 								'description' => __( 'Optional token to send in the auth header', 'data-machine' ),
 							),
+							'reply_to'         => array(
+								'type'        => 'string',
+								'description' => __( 'Optional channel ID for response routing (e.g., Discord channel ID)', 'data-machine' ),
+							),
 						),
 					),
 					'output_schema'       => array(
@@ -133,6 +137,7 @@ class SendPingAbility {
 		$from_queue         = $input['from_queue'] ?? false;
 		$auth_header_name   = $input['auth_header_name'] ?? '';
 		$auth_token         = $input['auth_token'] ?? '';
+		$reply_to           = $input['reply_to'] ?? '';
 
 		if ( empty( $webhook_urls_input ) ) {
 			return array(
@@ -176,7 +181,8 @@ class SendPingAbility {
 				$job_id,
 				$from_queue,
 				$auth_header_name,
-				$auth_token
+				$auth_token,
+				$reply_to
 			);
 
 			$results[] = $result;
@@ -219,6 +225,7 @@ class SendPingAbility {
 	 * @param bool     $from_queue Whether job originated from prompt queue.
 	 * @param string   $auth_header_name Optional auth header name.
 	 * @param string   $auth_token Optional auth token.
+	 * @param string   $reply_to Optional channel ID for response routing.
 	 * @return array Result with success status.
 	 */
 	private function sendToUrl(
@@ -231,9 +238,10 @@ class SendPingAbility {
 		?int $job_id,
 		bool $from_queue,
 		string $auth_header_name = '',
-		string $auth_token = ''
+		string $auth_token = '',
+		string $reply_to = ''
 	): array {
-		$payload = $this->buildPayload( $webhook_url, $prompt, $data_packets, $engine_data, $flow_id, $pipeline_id, $job_id, $from_queue );
+		$payload = $this->buildPayload( $webhook_url, $prompt, $data_packets, $engine_data, $flow_id, $pipeline_id, $job_id, $from_queue, $reply_to );
 
 		// Build headers with optional auth.
 		$headers = array( 'Content-Type' => 'application/json' );
@@ -318,14 +326,15 @@ class SendPingAbility {
 	 * @param mixed      $pipeline_id Pipeline ID.
 	 * @param int|null   $job_id Job ID.
 	 * @param bool       $from_queue Whether job originated from prompt queue.
+	 * @param string     $reply_to Optional channel ID for response routing.
 	 * @return array Payload for POST request.
 	 */
-	private function buildPayload( string $url, string $prompt, array $data_packets, array $engine_data, $flow_id, $pipeline_id, ?int $job_id, bool $from_queue = false ): array {
+	private function buildPayload( string $url, string $prompt, array $data_packets, array $engine_data, $flow_id, $pipeline_id, ?int $job_id, bool $from_queue = false, string $reply_to = '' ): array {
 		if ( $this->isDiscordWebhook( $url ) ) {
 			return $this->buildDiscordPayload( $prompt, $data_packets, $engine_data, $from_queue );
 		}
 
-		return array(
+		$payload = array(
 			'prompt'    => $prompt,
 			'context'   => array(
 				'data_packets' => $data_packets,
@@ -337,6 +346,13 @@ class SendPingAbility {
 			),
 			'timestamp' => gmdate( 'c' ),
 		);
+
+		// Include reply_to for custom webhooks (e.g., Sweatpants openclaw-trigger).
+		if ( ! empty( $reply_to ) ) {
+			$payload['reply_to'] = $reply_to;
+		}
+
+		return $payload;
 	}
 
 	/**

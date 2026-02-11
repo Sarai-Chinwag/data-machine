@@ -123,6 +123,7 @@ class AgentPingStep extends Step {
 		$configured_prompt = $handler_config['prompt'] ?? '';
 		$auth_header_name  = $handler_config['auth_header_name'] ?? '';
 		$auth_token        = $handler_config['auth_token'] ?? '';
+		$reply_to          = $handler_config['reply_to'] ?? '';
 		$data_packets      = $this->dataPackets;
 		$queue_enabled     = (bool) ( $this->flow_step_config['queue_enabled'] ?? false );
 		$prompt_queue      = $this->flow_step_config['prompt_queue'] ?? array();
@@ -163,6 +164,7 @@ class AgentPingStep extends Step {
 					'job_id'           => $this->job_id,
 					'auth_header_name' => $auth_header_name,
 					'auth_token'       => $auth_token,
+					'reply_to'         => $reply_to,
 				)
 			);
 

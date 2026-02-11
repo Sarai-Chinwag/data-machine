@@ -7,7 +7,7 @@
 /**
  * WordPress dependencies
  */
-import { useState, useEffect, useCallback, useRef } from '@wordpress/element';
+import { useState, useEffect, useCallback, useRef, useMemo } from '@wordpress/element';
 import {
 	Button,
 	Card,
@@ -82,9 +82,50 @@ export default function FlowStepCard( {
 	const [ localAuthToken, setLocalAuthToken ] = useState(
 		flowStepConfig?.handler_config?.auth_token || ''
 	);
+	const [ localReplyTo, setLocalReplyTo ] = useState(
+		flowStepConfig?.handler_config?.reply_to || ''
+	);
 	const [ isSaving, setIsSaving ] = useState( false );
 	const [ error, setError ] = useState( null );
 	const saveTimeout = useRef( null );
+
+	// Ref to track current Agent Ping config values for debounced saves
+	const agentPingConfigRef = useRef( {
+		webhook_url: localWebhookUrl,
+		prompt: localAgentPingPrompt,
+		auth_header_name: localAuthHeaderName,
+		auth_token: localAuthToken,
+		reply_to: localReplyTo,
+	} );
+
+	// Keep ref in sync with state
+	useEffect( () => {
+		agentPingConfigRef.current = {
+			webhook_url: localWebhookUrl,
+			prompt: localAgentPingPrompt,
+			auth_header_name: localAuthHeaderName,
+			auth_token: localAuthToken,
+			reply_to: localReplyTo,
+		};
+	}, [
+		localWebhookUrl,
+		localAgentPingPrompt,
+		localAuthHeaderName,
+		localAuthToken,
+		localReplyTo,
+	] );
+
+	// State setters map for unified handler
+	const agentPingSetters = useMemo(
+		() => ( {
+			webhook_url: setLocalWebhookUrl,
+			prompt: setLocalAgentPingPrompt,
+			auth_header_name: setLocalAuthHeaderName,
+			auth_token: setLocalAuthToken,
+			reply_to: setLocalReplyTo,
+		} ),
+		[]
+	);
 	const updateQueueItemMutation = useUpdateQueueItem();
 	const addToQueueMutation = useAddToQueue();
 
@@ -116,6 +157,10 @@ export default function FlowStepCard( {
 	useEffect( () => {
 		setLocalAuthToken( flowStepConfig?.handler_config?.auth_token || '' );
 	}, [ flowStepConfig?.handler_config?.auth_token ] );
+
+	useEffect( () => {
+		setLocalReplyTo( flowStepConfig?.handler_config?.reply_to || '' );
+	}, [ flowStepConfig?.handler_config?.reply_to ] );
 
 	/**
 	 * Save user message to queue (add if empty, update index 0 if exists)
@@ -230,135 +275,69 @@ export default function FlowStepCard( {
 		[ flowStepId ]
 	);
 
-	const handleAgentPingPromptChange = useCallback(
-		( value ) => {
-			setLocalAgentPingPrompt( value );
+	/**
+	 * Unified handler for Agent Ping config fields.
+	 * Uses ref to get current values, avoiding stale closure issues.
+	 *
+	 * @param {string} field - Config field name (webhook_url, prompt, auth_header_name, auth_token, reply_to)
+	 * @param {string} value - New value for the field
+	 */
+	const handleAgentPingConfigChange = useCallback(
+		( field, value ) => {
+			// Update local state
+			const setter = agentPingSetters[ field ];
+			if ( setter ) {
+				setter( value );
+			}
 
+			// Clear existing timeout
 			if ( saveTimeout.current ) {
 				clearTimeout( saveTimeout.current );
 			}
 
 			saveTimeout.current = setTimeout( () => {
-				if ( shouldUseQueue ) {
+				// Special case: prompt field with queue enabled
+				if ( field === 'prompt' && shouldUseQueue ) {
 					saveToQueue( value );
 					return;
 				}
 
+				// Build config with current ref values, overriding the changed field
+				const currentConfig = agentPingConfigRef.current;
 				saveStepConfig(
 					{
 						handler_config: {
-							webhook_url: localWebhookUrl,
-							prompt: value,
-							auth_header_name: localAuthHeaderName,
-							auth_token: localAuthToken,
+							...currentConfig,
+							[ field ]: value,
 						},
 					},
-					() => setLocalAgentPingPrompt( localAgentPingPrompt )
+					() => setter && setter( currentConfig[ field ] )
 				);
 			}, AUTO_SAVE_DELAY );
 		},
-		[
-			shouldUseQueue,
-			saveToQueue,
-			saveStepConfig,
-			localWebhookUrl,
-			localAgentPingPrompt,
-			localAuthHeaderName,
-			localAuthToken,
-		]
+		[ agentPingSetters, shouldUseQueue, saveToQueue, saveStepConfig ]
 	);
 
+	// Convenience handlers that call the unified handler
+	const handleAgentPingPromptChange = useCallback(
+		( value ) => handleAgentPingConfigChange( 'prompt', value ),
+		[ handleAgentPingConfigChange ]
+	);
 	const handleWebhookUrlChange = useCallback(
-		( value ) => {
-			setLocalWebhookUrl( value );
-
-			if ( saveTimeout.current ) {
-				clearTimeout( saveTimeout.current );
-			}
-
-			saveTimeout.current = setTimeout( () => {
-				saveStepConfig(
-					{
-						handler_config: {
-							webhook_url: value,
-							prompt: localAgentPingPrompt,
-							auth_header_name: localAuthHeaderName,
-							auth_token: localAuthToken,
-						},
-					},
-					() => setLocalWebhookUrl( localWebhookUrl )
-				);
-			}, AUTO_SAVE_DELAY );
-		},
-		[
-			saveStepConfig,
-			localAgentPingPrompt,
-			localWebhookUrl,
-			localAuthHeaderName,
-			localAuthToken,
-		]
+		( value ) => handleAgentPingConfigChange( 'webhook_url', value ),
+		[ handleAgentPingConfigChange ]
 	);
-
 	const handleAuthHeaderNameChange = useCallback(
-		( value ) => {
-			setLocalAuthHeaderName( value );
-
-			if ( saveTimeout.current ) {
-				clearTimeout( saveTimeout.current );
-			}
-
-			saveTimeout.current = setTimeout( () => {
-				saveStepConfig(
-					{
-						handler_config: {
-							webhook_url: localWebhookUrl,
-							prompt: localAgentPingPrompt,
-							auth_header_name: value,
-							auth_token: localAuthToken,
-						},
-					},
-					() => setLocalAuthHeaderName( localAuthHeaderName )
-				);
-			}, AUTO_SAVE_DELAY );
-		},
-		[
-			saveStepConfig,
-			localWebhookUrl,
-			localAgentPingPrompt,
-			localAuthToken,
-			localAuthHeaderName,
-		]
+		( value ) => handleAgentPingConfigChange( 'auth_header_name', value ),
+		[ handleAgentPingConfigChange ]
 	);
-
 	const handleAuthTokenChange = useCallback(
-		( value ) => {
-			setLocalAuthToken( value );
-
-			if ( saveTimeout.current ) {
-				clearTimeout( saveTimeout.current );
-			}
-
-			saveTimeout.current = setTimeout( () => {
-				saveStepConfig(
-					{
-						handler_config: {
-							webhook_url: localWebhookUrl,
-							prompt: localAgentPingPrompt,
-							auth_header_name: localAuthHeaderName,
-							auth_token: value,
-						},
-					},
-					() => setLocalAuthToken( localAuthToken )
-				);
-			}, AUTO_SAVE_DELAY );
-		},
-		[
-			saveStepConfig,
-			localWebhookUrl,
-			localAgentPingPrompt,
-			localAuthHeaderName,
-			localAuthToken,
-		]
+		( value ) => handleAgentPingConfigChange( 'auth_token', value ),
+		[ handleAgentPingConfigChange ]
+	);
+	const handleReplyToChange = useCallback(
+		( value ) => handleAgentPingConfigChange( 'reply_to', value ),
+		[ handleAgentPingConfigChange ]
 	);
 
 	/**
@@ -568,6 +547,23 @@ export default function FlowStepCard( {
 								label={ __( 'Auth Token', 'data-machine' ) }
 								value={ localAuthToken }
 								onChange={ handleAuthTokenChange }
+							/>
+
+							<TextControl
+								label={ __(
+									'Reply To Channel',
+									'data-machine'
+								) }
+								value={ localReplyTo }
+								onChange={ handleReplyToChange }
+								placeholder={ __(
+									'e.g., Discord channel ID',
+									'data-machine'
+								) }
+								help={ __(
+									'Optional channel ID for response routing.',
+									'data-machine'
+								) }
 							/>
 
 							<TextareaControl

@@ -47,7 +47,6 @@ class Flows {
 			'debug',
 			'Flows table creation completed',
 			array(
-				'agent_type' => 'system',
 				'table_name' => $table_name,
 				'result'     => $result,
 			)

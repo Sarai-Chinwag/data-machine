@@ -55,7 +55,6 @@ class OAuth1Handler {
 					'error',
 					'OAuth1: Failed to get request token',
 					array(
-						'agent_type' => 'system',
 						'provider'   => $provider_key,
 						'http_code'  => $connection->getLastHttpCode(),
 						'response'   => $connection->getLastBody(),
@@ -81,7 +80,6 @@ class OAuth1Handler {
 				'debug',
 				'OAuth1: Request token obtained',
 				array(
-					'agent_type'  => 'system',
 					'provider'    => $provider_key,
 					'oauth_token' => substr( $request_token['oauth_token'], 0, 10 ) . '...',
 				)
@@ -94,7 +92,6 @@ class OAuth1Handler {
 				'error',
 				'OAuth1: Exception getting request token',
 				array(
-					'agent_type' => 'system',
 					'provider'   => $provider_key,
 					'error'      => $e->getMessage(),
 				)
@@ -131,7 +128,6 @@ class OAuth1Handler {
 			'debug',
 			'OAuth1: Built authorization URL',
 			array(
-				'agent_type'  => 'system',
 				'provider'    => $provider_key,
 				'oauth_token' => substr( $oauth_token, 0, 10 ) . '...',
 			)
@@ -168,7 +164,6 @@ class OAuth1Handler {
 				'error',
 				'OAuth1: Callback nonce verification failed',
 				array(
-					'agent_type' => 'system',
 					'provider'   => $provider_key,
 				)
 			);
@@ -190,7 +185,6 @@ class OAuth1Handler {
 				'warning',
 				'OAuth1: User denied access',
 				array(
-					'agent_type'   => 'system',
 					'provider'     => $provider_key,
 					'denied_token' => substr( $denied, 0, 10 ) . '...',
 				)
@@ -207,7 +201,6 @@ class OAuth1Handler {
 				'error',
 				'OAuth1: Missing callback parameters',
 				array(
-					'agent_type'   => 'system',
 					'provider'     => $provider_key,
 					'has_token'    => ! empty( $oauth_token ),
 					'has_verifier' => ! empty( $oauth_verifier ),
@@ -227,7 +220,6 @@ class OAuth1Handler {
 				'error',
 				'OAuth1: Token secret missing or expired',
 				array(
-					'agent_type'  => 'system',
 					'provider'    => $provider_key,
 					'oauth_token' => substr( $oauth_token, 0, 10 ) . '...',
 				)
@@ -257,7 +249,6 @@ class OAuth1Handler {
 					'error',
 					'OAuth1: Failed to get access token',
 					array(
-						'agent_type' => 'system',
 						'provider'   => $provider_key,
 						'http_code'  => $connection->getLastHttpCode(),
 						'response'   => $connection->getLastBody(),
@@ -281,7 +272,6 @@ class OAuth1Handler {
 					'error',
 					'OAuth1: No storage callback provided',
 					array(
-						'agent_type' => 'system',
 						'provider'   => $provider_key,
 					)
 				);
@@ -293,7 +283,6 @@ class OAuth1Handler {
 					'error',
 					'OAuth1: Failed to store account data',
 					array(
-						'agent_type' => 'system',
 						'provider'   => $provider_key,
 					)
 				);
@@ -307,7 +296,6 @@ class OAuth1Handler {
 				'info',
 				'OAuth1: Authentication successful',
 				array(
-					'agent_type' => 'system',
 					'provider'   => $provider_key,
 					'user_id'    => $account_data['user_id'] ?? 'unknown',
 				)
@@ -322,7 +310,6 @@ class OAuth1Handler {
 				'error',
 				'OAuth1: Exception during callback',
 				array(
-					'agent_type' => 'system',
 					'provider'   => $provider_key,
 					'error'      => $e->getMessage(),
 				)

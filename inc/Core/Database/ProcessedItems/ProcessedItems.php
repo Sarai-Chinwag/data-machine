@@ -265,7 +265,6 @@ class ProcessedItems {
 			'debug',
 			'Created processed items database table',
 			array(
-				'agent_type' => 'system',
 				'table_name' => $this->table_name,
 				'action'     => 'create_table',
 			)

@@ -35,7 +35,6 @@ class OAuth2Handler {
 			'debug',
 			'OAuth2: Created state nonce',
 			array(
-				'agent_type'   => 'system',
 				'provider'     => $provider_key,
 				'state_length' => strlen( $state ),
 			)
@@ -64,7 +63,6 @@ class OAuth2Handler {
 			$is_valid ? 'debug' : 'error',
 			'OAuth2: State verification',
 			array(
-				'agent_type' => 'system',
 				'provider'   => $provider_key,
 				'valid'      => $is_valid,
 			)
@@ -88,7 +86,6 @@ class OAuth2Handler {
 			'debug',
 			'OAuth2: Built authorization URL',
 			array(
-				'agent_type'  => 'system',
 				'auth_url'    => $auth_url,
 				'param_count' => count( $params ),
 			)
@@ -137,7 +134,6 @@ class OAuth2Handler {
 				'error',
 				'OAuth2: Provider returned error',
 				array(
-					'agent_type' => 'system',
 					'provider'   => $provider_key,
 					'error'      => $error,
 				)
@@ -154,7 +150,6 @@ class OAuth2Handler {
 				'error',
 				'OAuth2: State verification failed',
 				array(
-					'agent_type' => 'system',
 					'provider'   => $provider_key,
 				)
 			);
@@ -172,7 +167,6 @@ class OAuth2Handler {
 				'error',
 				'OAuth2: Token exchange failed',
 				array(
-					'agent_type' => 'system',
 					'provider'   => $provider_key,
 					'error'      => $token_data->get_error_message(),
 				)
@@ -192,7 +186,6 @@ class OAuth2Handler {
 					'error',
 					'OAuth2: Token transformation failed',
 					array(
-						'agent_type' => 'system',
 						'provider'   => $provider_key,
 						'error'      => $token_data->get_error_message(),
 					)
@@ -212,7 +205,6 @@ class OAuth2Handler {
 				'error',
 				'OAuth2: Failed to retrieve account details',
 				array(
-					'agent_type' => 'system',
 					'provider'   => $provider_key,
 					'error'      => $account_data->get_error_message(),
 				)
@@ -232,7 +224,6 @@ class OAuth2Handler {
 				'error',
 				'OAuth2: No storage callback provided',
 				array(
-					'agent_type' => 'system',
 					'provider'   => $provider_key,
 				)
 			);
@@ -244,7 +235,6 @@ class OAuth2Handler {
 				'error',
 				'OAuth2: Failed to store account data',
 				array(
-					'agent_type' => 'system',
 					'provider'   => $provider_key,
 				)
 			);
@@ -258,7 +248,6 @@ class OAuth2Handler {
 			'info',
 			'OAuth2: Authentication successful',
 			array(
-				'agent_type' => 'system',
 				'provider'   => $provider_key,
 				'account_id' => $account_data['id'] ?? 'unknown',
 			)

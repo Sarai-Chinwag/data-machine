@@ -53,7 +53,6 @@ class Reddit extends FetchHandler {
 					'error',
 					'Reddit Handler: Authentication service not available',
 					array(
-						'agent_type'          => 'system',
 						'handler'             => 'reddit',
 						'missing_service'     => 'reddit',
 						'available_providers' => array_keys( $auth_abilities->getAllProviders() ),

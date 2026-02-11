@@ -57,7 +57,6 @@ class GoogleSheetsFetch extends FetchHandler {
 					'error',
 					'Google Sheets Handler: Authentication service not available',
 					array(
-						'agent_type'          => 'system',
 						'handler'             => 'googlesheets',
 						'missing_service'     => 'googlesheets',
 						'available_providers' => array_keys( $auth_abilities->getAllProviders() ),

@@ -3,7 +3,7 @@
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
 
-## Unreleased
+## [0.22.1] - 2026-02-12
 
 - Remove scheduling interval aliases — only canonical names from SchedulerIntervals.php are accepted. Non-canonical values now return WP_Error instead of being silently normalized.
 

@@ -44,6 +44,9 @@ class JobsCommand extends BaseCommand {
 	 * in engine_data but the main status column doesn't get updated. This command finds
 	 * those jobs and completes them with their intended final status.
 	 *
+	 * Also recovers jobs that have been processing for longer than the timeout threshold
+	 * without a status override, marking them as failed and potentially requeuing prompts.
+	 *
 	 * ## OPTIONS
 	 *
 	 * [--dry-run]
@@ -51,6 +54,12 @@ class JobsCommand extends BaseCommand {
 	 *
 	 * [--flow=<flow_id>]
 	 * : Only recover jobs for a specific flow ID.
+	 *
+	 * [--timeout=<hours>]
+	 * : Hours before a processing job without status override is considered timed out.
+	 * ---
+	 * default: 2
+	 * ---
 	 *
 	 * ## EXAMPLES
 	 *
@@ -63,16 +72,21 @@ class JobsCommand extends BaseCommand {
 	 *     # Recover stuck jobs for a specific flow
 	 *     wp datamachine jobs recover-stuck --flow=98
 	 *
+	 *     # Recover stuck jobs with custom timeout
+	 *     wp datamachine jobs recover-stuck --timeout=4
+	 *
 	 * @subcommand recover-stuck
 	 */
 	public function recover_stuck( array $args, array $assoc_args ): void {
 		$dry_run = isset( $assoc_args['dry-run'] );
 		$flow_id = isset( $assoc_args['flow'] ) ? (int) $assoc_args['flow'] : null;
+		$timeout = isset( $assoc_args['timeout'] ) ? max( 1, (int) $assoc_args['timeout'] ) : 2;
 
 		$result = $this->abilities->executeRecoverStuckJobs(
 			array(
-				'dry_run' => $dry_run,
-				'flow_id' => $flow_id,
+				'dry_run'       => $dry_run,
+				'flow_id'       => $flow_id,
+				'timeout_hours' => $timeout,
 			)
 		);
 
@@ -111,6 +125,10 @@ class JobsCommand extends BaseCommand {
 			} elseif ( 'recovered' === $job['status'] ) {
 				$display_status = strlen( $job['target_status'] ) > 60 ? substr( $job['target_status'], 0, 60 ) . '...' : $job['target_status'];
 				WP_CLI::log( sprintf( 'Updated job %d to: %s', $job['job_id'], $display_status ) );
+			} elseif ( 'would_timeout' === $job['status'] ) {
+				WP_CLI::log( sprintf( 'Would timeout job %d (flow %d)', $job['job_id'], $job['flow_id'] ) );
+			} elseif ( 'timed_out' === $job['status'] ) {
+				WP_CLI::log( sprintf( 'Timed out job %d (flow %d)', $job['job_id'], $job['flow_id'] ) );
 			}
 		}
 

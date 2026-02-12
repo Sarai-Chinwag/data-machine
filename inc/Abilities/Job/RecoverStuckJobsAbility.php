@@ -2,7 +2,7 @@
 /**
  * Recover Stuck Jobs Ability
  *
- * Recovers jobs stuck in processing state that have a job_status override in engine_data.
+ * Recovers jobs stuck in processing state: jobs with status override in engine_data, and jobs exceeding timeout threshold.
  *
  * @package DataMachine\Abilities\Job
  * @since 0.17.0
@@ -34,7 +34,7 @@ class RecoverStuckJobsAbility {
 				'datamachine/recover-stuck-jobs',
 				array(
 					'label'               => __( 'Recover Stuck Jobs', 'data-machine' ),
-					'description'         => __( 'Recover jobs stuck in processing state that have a job_status override in engine_data.', 'data-machine' ),
+					'description'         => __( 'Recover jobs stuck in processing state: jobs with status override in engine_data, and jobs exceeding timeout threshold.', 'data-machine' ),
 					'category'            => 'datamachine',
 					'input_schema'        => array(
 						'type'       => 'object',
@@ -48,6 +48,11 @@ class RecoverStuckJobsAbility {
 								'type'        => array( 'integer', 'null' ),
 								'description' => __( 'Filter to recover jobs only for a specific flow ID', 'data-machine' ),
 							),
+							'timeout_hours' => array(
+								'type'        => 'integer',
+								'default'     => 2,
+								'description' => __( 'Hours before a processing job without status override is considered timed out', 'data-machine' ),
+							),
 						),
 					),
 					'output_schema'       => array(
@@ -56,6 +61,8 @@ class RecoverStuckJobsAbility {
 							'success'   => array( 'type' => 'boolean' ),
 							'recovered' => array( 'type' => 'integer' ),
 							'skipped'   => array( 'type' => 'integer' ),
+							'timed_out' => array( 'type' => 'integer' ),
+							'requeued'  => array( 'type' => 'integer' ),
 							'dry_run'   => array( 'type' => 'boolean' ),
 							'jobs'      => array( 'type' => 'array' ),
 							'message'   => array( 'type' => 'string' ),
@@ -80,17 +87,18 @@ class RecoverStuckJobsAbility {
 	 * Execute recover-stuck-jobs ability.
 	 *
 	 * Finds jobs with status='processing' that have a job_status override in engine_data
-	 * and updates them to their intended final status.
+	 * and updates them to their intended final status. Also recovers timed-out jobs.
 	 *
-	 * @param array $input Input parameters with optional dry_run and flow_id.
+	 * @param array $input Input parameters with optional dry_run, flow_id, and timeout_hours.
 	 * @return array Result with recovered/skipped counts.
 	 */
 	public function execute( array $input ): array {
 		global $wpdb;
 		$table = $wpdb->prefix . 'datamachine_jobs';
 
-		$dry_run = ! empty( $input['dry_run'] );
-		$flow_id = isset( $input['flow_id'] ) && is_numeric( $input['flow_id'] ) ? (int) $input['flow_id'] : null;
+		$dry_run       = ! empty( $input['dry_run'] );
+		$flow_id       = isset( $input['flow_id'] ) && is_numeric( $input['flow_id'] ) ? (int) $input['flow_id'] : null;
+		$timeout_hours = isset( $input['timeout_hours'] ) && is_numeric( $input['timeout_hours'] ) ? max( 1, (int) $input['timeout_hours'] ) : 2;
 
 		$where_clause = "WHERE status = 'processing' AND engine_data LIKE '%\"job_status\"%'";
 		if ( $flow_id ) {
@@ -106,14 +114,7 @@ class RecoverStuckJobsAbility {
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( empty( $stuck_jobs ) ) {
-			return array(
-				'success'   => true,
-				'recovered' => 0,
-				'skipped'   => 0,
-				'dry_run'   => $dry_run,
-				'jobs'      => array(),
-				'message'   => 'No stuck jobs found.',
-			);
+			$stuck_jobs = array();
 		}
 
 		$recovered = 0;
@@ -177,18 +178,110 @@ class RecoverStuckJobsAbility {
 			}
 		}
 
-		$message = $dry_run
-			? sprintf( 'Dry run complete. Would recover %d jobs, skip %d.', $recovered, $skipped )
-			: sprintf( 'Recovery complete. Recovered: %d, Skipped: %d', $recovered, $skipped );
+		// Second recovery pass: timed-out jobs (processing without job_status override, older than timeout).
+		$timeout_where = $wpdb->prepare(
+			"WHERE status = 'processing' AND engine_data NOT LIKE %s AND created_at < DATE_SUB(NOW(), INTERVAL %d HOUR)",
+			'%"job_status"%',
+			$timeout_hours
+		);
+		if ( $flow_id ) {
+			$timeout_where .= $wpdb->prepare( ' AND flow_id = %d', $flow_id );
+		}
 
-		if ( ! $dry_run && $recovered > 0 ) {
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Dynamic WHERE clause
+		$timed_out_jobs = $wpdb->get_results(
+			"SELECT job_id, flow_id, engine_data FROM {$table} {$timeout_where}"
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		$timed_out = 0;
+		$requeued  = 0;
+
+		foreach ( $timed_out_jobs as $job ) {
+			$engine_data = json_decode( $job->engine_data, true );
+			if ( ! is_array( $engine_data ) ) {
+				$engine_data = array();
+			}
+
+			$job_id      = (int) $job->job_id;
+			$job_flow_id = (int) $job->flow_id;
+
+			if ( $dry_run ) {
+				++$timed_out;
+				$jobs[] = array(
+					'job_id'  => $job_id,
+					'flow_id' => $job_flow_id,
+					'status'  => 'would_timeout',
+				);
+			} else {
+				// Mark as failed
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+				$result = $wpdb->update(
+					$table,
+					array(
+						'status'       => 'failed',
+						'completed_at' => current_time( 'mysql', true ),
+					),
+					array( 'job_id' => $job_id ),
+					array( '%s', '%s' ),
+					array( '%d' )
+				);
+
+				if ( false !== $result ) {
+					++$timed_out;
+					$jobs[] = array(
+						'job_id'  => $job_id,
+						'flow_id' => $job_flow_id,
+						'status'  => 'timed_out',
+					);
+
+					do_action( 'datamachine_job_complete', $job_id, 'failed' );
+
+					// Check for queued_prompt_backup and requeue if found
+					if ( isset( $engine_data['queued_prompt_backup']['prompt'] ) && isset( $engine_data['queued_prompt_backup']['flow_step_id'] ) ) {
+						$flow = $this->db_flows->get_flow( $job_flow_id );
+						if ( $flow && isset( $flow['flow_config'] ) ) {
+							$flow_config = $flow['flow_config'];
+							$step_id     = $engine_data['queued_prompt_backup']['flow_step_id'];
+							$prompt      = $engine_data['queued_prompt_backup']['prompt'];
+
+							if ( isset( $flow_config[ $step_id ] ) && isset( $flow_config[ $step_id ]['prompt_queue'] ) ) {
+								$flow_config[ $step_id ]['prompt_queue'][] = array(
+									'prompt'   => $prompt,
+									'added_at' => gmdate( 'c' ),
+								);
+
+								$update_result = $this->db_flows->update_flow( $job_flow_id, array( 'flow_config' => $flow_config ) );
+								if ( $update_result ) {
+									++$requeued;
+								}
+							}
+						}
+					}
+				} else {
+					$jobs[] = array(
+						'job_id'  => $job_id,
+						'flow_id' => $job_flow_id,
+						'status'  => 'skipped',
+						'reason'  => 'Database update failed for timeout',
+					);
+				}
+			}
+		}
+
+		$message = $dry_run
+			? sprintf( 'Dry run complete. Would recover %d jobs, timeout %d jobs.', $recovered, $timed_out )
+			: sprintf( 'Recovery complete. Recovered: %d, Timed out: %d, Requeued: %d', $recovered, $timed_out, $requeued );
+
+		if ( ! $dry_run && ( $recovered > 0 || $timed_out > 0 ) ) {
 			do_action(
 				'datamachine_log',
 				'info',
 				'Stuck jobs recovered via ability',
 				array(
 					'recovered' => $recovered,
-					'skipped'   => $skipped,
+					'timed_out' => $timed_out,
+					'requeued'  => $requeued,
 					'flow_id'   => $flow_id,
 				)
 			);
@@ -198,6 +291,8 @@ class RecoverStuckJobsAbility {
 			'success'   => true,
 			'recovered' => $recovered,
 			'skipped'   => $skipped,
+			'timed_out' => $timed_out,
+			'requeued'  => $requeued,
 			'dry_run'   => $dry_run,
 			'jobs'      => $jobs,
 			'message'   => $message,

@@ -1327,20 +1327,6 @@ class QueueAbility {
 	private function findSimilarExistingPost( string $prompt ): ?array {
 		global $wpdb;
 
-		// Extract core topic by removing common prefixes/suffixes.
-		$core_topic = $prompt;
-		$core_topic = preg_replace( '/^(the\s+)?(spiritual\s+meaning\s+of\s+)/i', '', $core_topic );
-		$core_topic = preg_replace( '/\s+(spiritual\s+meaning|symbolism|symbol|meaning).*$/i', '', $core_topic );
-		$core_topic = preg_replace( '/^(why\s+(do|are|is)\s+)/i', '', $core_topic );
-		$core_topic = preg_replace( '/^(what\s+(do|does|is|are)\s+)/i', '', $core_topic );
-		$core_topic = preg_replace( '/^(how\s+(do|does|to)\s+)/i', '', $core_topic );
-		$core_topic = trim( $core_topic );
-
-		// Skip if core topic is too short.
-		if ( strlen( $core_topic ) < 3 ) {
-			return null;
-		}
-
 		// Search for exact prompt match first.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$exact_match = $wpdb->get_row(
@@ -1361,26 +1347,88 @@ class QueueAbility {
 			);
 		}
 
-		// Search for core topic in title.
+		// Extract core topic from the queued prompt.
+		$core_topic = $this->extractCoreTopic( $prompt );
+
+		// Skip if core topic is too short.
+		if ( strlen( $core_topic ) < 3 ) {
+			return null;
+		}
+
+		// Search for candidate posts containing the core topic.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$similar_match = $wpdb->get_row(
+		$candidates = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT ID, post_title FROM {$wpdb->posts}
 				WHERE post_type = 'post'
 				AND post_status = 'publish'
 				AND LOWER(post_title) LIKE %s
-				LIMIT 1",
+				LIMIT 10",
 				'%' . $wpdb->esc_like( strtolower( $core_topic ) ) . '%'
 			)
 		);
 
-		if ( $similar_match ) {
-			return array(
-				'id'    => (int) $similar_match->ID,
-				'title' => $similar_match->post_title,
-			);
+		if ( empty( $candidates ) ) {
+			return null;
+		}
+
+		// Compare using both title similarity and core topic matching.
+		// This prevents false positives like "Spiritual Meaning of Robins"
+		// matching "Why Are Robins Associated with Christmas?" — same subject
+		// but different articles.
+		foreach ( $candidates as $candidate ) {
+			$candidate_core = $this->extractCoreTopic( $candidate->post_title );
+
+			$topic_lower     = strtolower( $core_topic );
+			$candidate_lower = strtolower( $candidate_core );
+
+			// Core topics must be very similar (not just share a keyword).
+			// Use similar_text percentage on the full titles as a secondary check.
+			similar_text( strtolower( $prompt ), strtolower( $candidate->post_title ), $title_similarity );
+
+			// Exact core topic match + high title similarity (>60%) = duplicate.
+			if ( $topic_lower === $candidate_lower && $title_similarity > 60.0 ) {
+				return array(
+					'id'    => (int) $candidate->ID,
+					'title' => $candidate->post_title,
+				);
+			}
+
+			// Very high title similarity (>80%) = duplicate regardless of core topic.
+			if ( $title_similarity > 80.0 ) {
+				return array(
+					'id'    => (int) $candidate->ID,
+					'title' => $candidate->post_title,
+				);
+			}
 		}
 
 		return null;
+	}
+
+	/**
+	 * Extract the core topic from a title by removing common framing phrases.
+	 *
+	 * "The Spiritual Meaning of Robins" → "Robins"
+	 * "Why Are Robins Associated with Christmas?" → "Robins Associated with Christmas?"
+	 * "What Happens If You Mix Salt and Ice?" → "Salt and Ice?"
+	 *
+	 * @param string $title Post title or queue prompt.
+	 * @return string Extracted core topic.
+	 */
+	private function extractCoreTopic( string $title ): string {
+		$core = $title;
+		$core = preg_replace( '/^(the\s+)?(spiritual\s+meaning\s+of\s+)/i', '', $core );
+		$core = preg_replace( '/\s+(spiritual\s+meaning|symbolism|symbol|meaning)\s*$/i', '', $core );
+		$core = preg_replace( '/^(why\s+(do|are|is)\s+)/i', '', $core );
+		$core = preg_replace( '/^(what\s+(do|does|is|are|happens?\s+(if|when)\s+(you\s+)?))/i', '', $core );
+		$core = preg_replace( '/^(how\s+(do|does|to|fast|much|long|many)\s+)/i', '', $core );
+		$core = preg_replace( '/^(\d+\s+(amazing\s+|interesting\s+|fun\s+|cool\s+)?facts?\s+about\s+)/i', '', $core );
+		$core = preg_replace( '/^(the\s+history\s+of\s+)/i', '', $core );
+		$core = preg_replace( '/^(why\s+am\s+i\s+craving\s+)/i', '', $core );
+		$core = preg_replace( '/[?.!]+$/', '', $core );
+		$core = trim( $core );
+
+		return $core;
 	}
 }

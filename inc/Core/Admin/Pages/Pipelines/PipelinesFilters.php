@@ -157,4 +157,4 @@ function datamachine_get_chubes_ai_tools_for_react() {
 }
 
 // Auto-register when file loads - achieving complete self-containment
-datamachine_register_pipelines_admin_page_filters();
+add_action( 'init', __NAMESPACE__ . '\\datamachine_register_pipelines_admin_page_filters' );

@@ -80,4 +80,4 @@ function datamachine_register_jobs_admin_page_filters() {
 }
 
 // Auto-register when file loads - achieving complete self-containment
-datamachine_register_jobs_admin_page_filters();
+add_action( 'init', __NAMESPACE__ . '\\datamachine_register_jobs_admin_page_filters' );

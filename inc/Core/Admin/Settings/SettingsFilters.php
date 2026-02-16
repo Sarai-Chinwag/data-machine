@@ -167,4 +167,4 @@ function datamachine_sanitize_settings( $input ) {
 	return $sanitized;
 }
 
-datamachine_register_settings_admin_page_filters();
+add_action( 'init', 'datamachine_register_settings_admin_page_filters' );

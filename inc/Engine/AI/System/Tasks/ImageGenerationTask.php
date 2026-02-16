@@ -171,23 +171,148 @@ class ImageGenerationTask extends SystemTask {
 			$attachment_url = $sideload_result['attachment_url'];
 		}
 
+		// Get local file path for engine data — publish handler uses image_file_path
+		$image_file_path = null;
+		if ( $attachment_id ) {
+			$image_file_path = get_attached_file( $attachment_id );
+		}
+
+		// If we have an attachment and a pipeline job context, try to set featured image
+		if ( $attachment_id ) {
+			$this->trySetFeaturedImage( $jobId, $attachment_id, $params );
+		}
+
 		// Complete job with success data
 		$result = [
 			'success'      => true,
 			'data'         => [
-				'message'        => "Image generated successfully using {$model}.",
-				'image_url'      => $image_url,
-				'attachment_id'  => $attachment_id,
-				'attachment_url' => $attachment_url,
-				'prompt'         => $prompt,
-				'model'          => $model,
-				'aspect_ratio'   => $aspectRatio,
+				'message'         => "Image generated successfully using {$model}.",
+				'image_url'       => $image_url,
+				'attachment_id'   => $attachment_id,
+				'attachment_url'  => $attachment_url,
+				'image_file_path' => $image_file_path,
+				'prompt'          => $prompt,
+				'model'           => $model,
+				'aspect_ratio'    => $aspectRatio,
 			],
 			'tool_name'    => 'image_generation',
 			'completed_at' => current_time( 'mysql' ),
 		];
 
 		$this->completeJob( $jobId, $result );
+	}
+
+	/**
+	 * Try to set the generated image as the featured image on the published post.
+	 *
+	 * Reads the pipeline's engine data to find the post_id written by the
+	 * publish step. If the post hasn't been published yet (race condition),
+	 * schedules a deferred attempt via Action Scheduler.
+	 *
+	 * @param int   $jobId        System Agent job ID.
+	 * @param int   $attachmentId WordPress attachment ID.
+	 * @param array $params       Task params (contains context.pipeline_job_id).
+	 */
+	private function trySetFeaturedImage( int $jobId, int $attachmentId, array $params ): void {
+		$context         = $params['context'] ?? [];
+		$pipeline_job_id = $context['pipeline_job_id'] ?? 0;
+
+		if ( empty( $pipeline_job_id ) ) {
+			// No pipeline context — this was a chat or standalone request
+			return;
+		}
+
+		// Read the pipeline job's engine data to find the published post_id
+		$pipeline_engine_data = datamachine_get_engine_data( (int) $pipeline_job_id );
+		$post_id              = $pipeline_engine_data['post_id'] ?? 0;
+
+		if ( empty( $post_id ) ) {
+			// Post hasn't been published yet — schedule a deferred attempt
+			$this->scheduleFeaturedImageRetry( $attachmentId, $pipeline_job_id );
+			return;
+		}
+
+		// Check if post already has a featured image
+		if ( has_post_thumbnail( $post_id ) ) {
+			do_action(
+				'datamachine_log',
+				'debug',
+				"System Agent: Post #{$post_id} already has a featured image, skipping",
+				[
+					'job_id'        => $jobId,
+					'post_id'       => $post_id,
+					'attachment_id' => $attachmentId,
+					'agent_type'    => 'system',
+				]
+			);
+			return;
+		}
+
+		// Set the featured image
+		$result = set_post_thumbnail( $post_id, $attachmentId );
+
+		if ( $result ) {
+			do_action(
+				'datamachine_log',
+				'info',
+				"System Agent: Featured image set on post #{$post_id} (attachment #{$attachmentId})",
+				[
+					'job_id'        => $jobId,
+					'post_id'       => $post_id,
+					'attachment_id' => $attachmentId,
+					'agent_type'    => 'system',
+				]
+			);
+		} else {
+			do_action(
+				'datamachine_log',
+				'warning',
+				"System Agent: Failed to set featured image on post #{$post_id}",
+				[
+					'job_id'        => $jobId,
+					'post_id'       => $post_id,
+					'attachment_id' => $attachmentId,
+					'agent_type'    => 'system',
+				]
+			);
+		}
+	}
+
+	/**
+	 * Schedule a deferred attempt to set the featured image.
+	 *
+	 * Used when the System Agent finishes image generation before the
+	 * pipeline's publish step has written the post_id to engine data.
+	 *
+	 * @param int $attachmentId     WordPress attachment ID.
+	 * @param int $pipelineJobId    Pipeline job ID to check for post_id.
+	 */
+	private function scheduleFeaturedImageRetry( int $attachmentId, int $pipelineJobId ): void {
+		if ( ! function_exists( 'as_schedule_single_action' ) ) {
+			return;
+		}
+
+		as_schedule_single_action(
+			time() + 15,
+			'datamachine_system_agent_set_featured_image',
+			[
+				'attachment_id'   => $attachmentId,
+				'pipeline_job_id' => $pipelineJobId,
+				'attempt'         => 1,
+			],
+			'data-machine'
+		);
+
+		do_action(
+			'datamachine_log',
+			'debug',
+			"System Agent: Scheduled deferred featured image set (attachment #{$attachmentId}, pipeline job #{$pipelineJobId})",
+			[
+				'attachment_id'   => $attachmentId,
+				'pipeline_job_id' => $pipelineJobId,
+				'agent_type'      => 'system',
+			]
+		);
 	}
 
 	/**

@@ -127,7 +127,14 @@ class ImageGeneration extends BaseTool {
 			);
 		}
 
-		// NEW: Hand off to System Agent instead of polling
+		// Hand off to System Agent instead of polling.
+		// Pass pipeline job_id in context so the System Agent can read
+		// engine data (e.g. post_id) and set featured image after publish.
+		$context = [];
+		if ( ! empty( $parameters['job_id'] ) ) {
+			$context['pipeline_job_id'] = (int) $parameters['job_id'];
+		}
+
 		return $this->buildPendingResponse(
 			'image_generation',
 			[
@@ -136,7 +143,7 @@ class ImageGeneration extends BaseTool {
 				'prompt'        => $prompt,
 				'aspect_ratio'  => $aspect_ratio,
 			],
-			[], // context - pipeline/chat routing handled upstream
+			$context,
 			'image_generation'
 		);
 	}

@@ -343,6 +343,8 @@ class SendPingAbility {
 				'pipeline_id'  => $pipeline_id,
 				'job_id'       => $job_id,
 				'from_queue'   => $from_queue,
+				'site_url'     => site_url(),
+				'wp_path'      => ABSPATH,
 			),
 			'timestamp' => gmdate( 'c' ),
 		);

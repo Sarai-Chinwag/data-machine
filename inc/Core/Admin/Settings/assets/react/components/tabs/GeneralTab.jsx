@@ -2,162 +2,115 @@
  * GeneralTab Component
  *
  * General settings including enabled admin pages, cleanup options, and file retention.
+ * Uses useFormState for form management and SettingsSaveBar for save UI.
  */
 
 /**
  * WordPress dependencies
  */
-import { useState, useEffect } from '@wordpress/element';
+import { useEffect } from '@wordpress/element';
+
 /**
  * Internal dependencies
  */
 import { useSettings, useUpdateSettings } from '../../queries/settings';
+import { useFormState } from '@shared/hooks/useFormState';
+import SettingsSaveBar, {
+	useSaveStatus,
+} from '@shared/components/SettingsSaveBar';
+
+const DEFAULTS = {
+	cleanup_job_data_on_failure: true,
+	file_retention_days: 7,
+	chat_retention_days: 90,
+	chat_ai_titles_enabled: true,
+	alt_text_auto_generate_enabled: true,
+	flows_per_page: 20,
+	jobs_per_page: 50,
+	queue_tuning: {
+		concurrent_batches: 3,
+		batch_size: 25,
+		time_limit: 60,
+	},
+};
+
+/**
+ * Clamp a numeric value within bounds.
+ *
+ * @param {string|number} raw          Raw input value
+ * @param {number}        min          Minimum allowed
+ * @param {number}        max          Maximum allowed
+ * @param {number}        defaultValue Fallback if NaN
+ * @return {number} Clamped integer
+ */
+const clamp = ( raw, min, max, defaultValue ) =>
+	Math.max( min, Math.min( max, parseInt( raw, 10 ) || defaultValue ) );
+
+const QUEUE_LIMITS = {
+	concurrent_batches: { min: 1, max: 10, default: 3 },
+	batch_size: { min: 10, max: 200, default: 25 },
+	time_limit: { min: 15, max: 300, default: 60 },
+};
 
 const GeneralTab = () => {
 	const { data, isLoading, error } = useSettings();
 	const updateMutation = useUpdateSettings();
 
-	const [ formState, setFormState ] = useState( {
-		cleanup_job_data_on_failure: true,
-		file_retention_days: 7,
-		chat_retention_days: 90,
-		chat_ai_titles_enabled: true,
-		alt_text_auto_generate_enabled: true,
-		flows_per_page: 20,
-		jobs_per_page: 50,
-		queue_tuning: {
-			concurrent_batches: 3,
-			batch_size: 25,
-			time_limit: 60,
-		},
+	const form = useFormState( {
+		initialData: DEFAULTS,
+		onSubmit: ( formData ) => updateMutation.mutateAsync( formData ),
 	} );
-	const [ hasChanges, setHasChanges ] = useState( false );
-	const [ saveStatus, setSaveStatus ] = useState( null );
 
+	const save = useSaveStatus( {
+		onSave: () => form.submit(),
+	} );
+
+	// Sync server data → form state
 	useEffect( () => {
 		if ( data?.settings ) {
-			setFormState( {
+			form.reset( {
 				cleanup_job_data_on_failure:
-					data.settings.cleanup_job_data_on_failure ?? true,
-				file_retention_days: data.settings.file_retention_days ?? 7,
-				chat_retention_days: data.settings.chat_retention_days ?? 90,
+					data.settings.cleanup_job_data_on_failure ?? DEFAULTS.cleanup_job_data_on_failure,
+				file_retention_days:
+					data.settings.file_retention_days ?? DEFAULTS.file_retention_days,
+				chat_retention_days:
+					data.settings.chat_retention_days ?? DEFAULTS.chat_retention_days,
 				chat_ai_titles_enabled:
-					data.settings.chat_ai_titles_enabled ?? true,
+					data.settings.chat_ai_titles_enabled ?? DEFAULTS.chat_ai_titles_enabled,
 				alt_text_auto_generate_enabled:
-					data.settings.alt_text_auto_generate_enabled ?? true,
-				flows_per_page: data.settings.flows_per_page ?? 20,
-				jobs_per_page: data.settings.jobs_per_page ?? 50,
-				queue_tuning: data.settings.queue_tuning ?? {
-					concurrent_batches: 3,
-					batch_size: 25,
-					time_limit: 60,
-				},
+					data.settings.alt_text_auto_generate_enabled ?? DEFAULTS.alt_text_auto_generate_enabled,
+				flows_per_page:
+					data.settings.flows_per_page ?? DEFAULTS.flows_per_page,
+				jobs_per_page:
+					data.settings.jobs_per_page ?? DEFAULTS.jobs_per_page,
+				queue_tuning:
+					data.settings.queue_tuning ?? DEFAULTS.queue_tuning,
 			} );
-			setHasChanges( false );
+			save.setHasChanges( false );
 		}
-	}, [ data ] );
+	}, [ data ] ); // eslint-disable-line react-hooks/exhaustive-deps
 
-	const handleCleanupToggle = ( enabled ) => {
-		setFormState( ( prev ) => ( {
-			...prev,
-			cleanup_job_data_on_failure: enabled,
-		} ) );
-		setHasChanges( true );
+	/**
+	 * Update a field and mark the form as changed.
+	 *
+	 * @param {string} field Field key
+	 * @param {*}      value New value
+	 */
+	const updateField = ( field, value ) => {
+		form.updateField( field, value );
+		save.markChanged();
 	};
 
-	const handleRetentionChange = ( days ) => {
-		const value = Math.max( 1, Math.min( 90, parseInt( days, 10 ) || 1 ) );
-		setFormState( ( prev ) => ( {
-			...prev,
-			file_retention_days: value,
-		} ) );
-		setHasChanges( true );
-	};
-
-	const handleChatRetentionChange = ( days ) => {
-		const value = Math.max(
-			1,
-			Math.min( 365, parseInt( days, 10 ) || 90 )
-		);
-		setFormState( ( prev ) => ( {
-			...prev,
-			chat_retention_days: value,
-		} ) );
-		setHasChanges( true );
-	};
-
-	const handleChatAiTitlesToggle = ( enabled ) => {
-		setFormState( ( prev ) => ( {
-			...prev,
-			chat_ai_titles_enabled: enabled,
-		} ) );
-		setHasChanges( true );
-	};
-
-	const handleAltTextAutoGenerateToggle = ( enabled ) => {
-		setFormState( ( prev ) => ( {
-			...prev,
-			alt_text_auto_generate_enabled: enabled,
-		} ) );
-		setHasChanges( true );
-	};
-
-	const handleFlowsPerPageChange = ( count ) => {
-		const value = Math.max(
-			5,
-			Math.min( 100, parseInt( count, 10 ) || 20 )
-		);
-		setFormState( ( prev ) => ( {
-			...prev,
-			flows_per_page: value,
-		} ) );
-		setHasChanges( true );
-	};
-
-	const handleJobsPerPageChange = ( count ) => {
-		const value = Math.max(
-			5,
-			Math.min( 100, parseInt( count, 10 ) || 50 )
-		);
-		setFormState( ( prev ) => ( {
-			...prev,
-			jobs_per_page: value,
-		} ) );
-		setHasChanges( true );
-	};
-
-	const handleQueueTuningChange = ( key, rawValue ) => {
-		const limits = {
-			concurrent_batches: { min: 1, max: 10, default: 3 },
-			batch_size: { min: 10, max: 200, default: 25 },
-			time_limit: { min: 15, max: 300, default: 60 },
-		};
-		const { min, max, default: defaultVal } = limits[ key ];
-		const value = Math.max(
-			min,
-			Math.min( max, parseInt( rawValue, 10 ) || defaultVal )
-		);
-		setFormState( ( prev ) => ( {
-			...prev,
+	const updateQueueTuning = ( key, rawValue ) => {
+		const { min, max, default: defaultVal } = QUEUE_LIMITS[ key ];
+		const value = clamp( rawValue, min, max, defaultVal );
+		form.updateData( {
 			queue_tuning: {
-				...prev.queue_tuning,
+				...form.data.queue_tuning,
 				[ key ]: value,
 			},
-		} ) );
-		setHasChanges( true );
-	};
-
-	const handleSave = async () => {
-		setSaveStatus( 'saving' );
-		try {
-			await updateMutation.mutateAsync( formState );
-			setSaveStatus( 'saved' );
-			setHasChanges( false );
-			setTimeout( () => setSaveStatus( null ), 2000 );
-		} catch ( err ) {
-			setSaveStatus( 'error' );
-			setTimeout( () => setSaveStatus( null ), 3000 );
-		}
+		} );
+		save.markChanged();
 	};
 
 	if ( isLoading ) {
@@ -190,10 +143,12 @@ const GeneralTab = () => {
 										type="checkbox"
 										id="cleanup_job_data_on_failure"
 										checked={
-											formState.cleanup_job_data_on_failure
+											form.data
+												.cleanup_job_data_on_failure
 										}
 										onChange={ ( e ) =>
-											handleCleanupToggle(
+											updateField(
+												'cleanup_job_data_on_failure',
 												e.target.checked
 											)
 										}
@@ -217,9 +172,12 @@ const GeneralTab = () => {
 								<input
 									type="number"
 									id="file_retention_days"
-									value={ formState.file_retention_days }
+									value={ form.data.file_retention_days }
 									onChange={ ( e ) =>
-										handleRetentionChange( e.target.value )
+										updateField(
+											'file_retention_days',
+											clamp( e.target.value, 1, 90, 7 )
+										)
 									}
 									min="1"
 									max="90"
@@ -242,10 +200,16 @@ const GeneralTab = () => {
 								<input
 									type="number"
 									id="chat_retention_days"
-									value={ formState.chat_retention_days }
+									value={ form.data.chat_retention_days }
 									onChange={ ( e ) =>
-										handleChatRetentionChange(
-											e.target.value
+										updateField(
+											'chat_retention_days',
+											clamp(
+												e.target.value,
+												1,
+												365,
+												90
+											)
 										)
 									}
 									min="1"
@@ -269,10 +233,11 @@ const GeneralTab = () => {
 										type="checkbox"
 										id="chat_ai_titles_enabled"
 										checked={
-											formState.chat_ai_titles_enabled
+											form.data.chat_ai_titles_enabled
 										}
 										onChange={ ( e ) =>
-											handleChatAiTitlesToggle(
+											updateField(
+												'chat_ai_titles_enabled',
 												e.target.checked
 											)
 										}
@@ -297,17 +262,19 @@ const GeneralTab = () => {
 										type="checkbox"
 										id="alt_text_auto_generate_enabled"
 										checked={
-											formState.alt_text_auto_generate_enabled
+											form.data
+												.alt_text_auto_generate_enabled
 										}
 										onChange={ ( e ) =>
-											handleAltTextAutoGenerateToggle(
+											updateField(
+												'alt_text_auto_generate_enabled',
 												e.target.checked
 											)
 										}
 									/>
-									Automatically generate AI-powered alt text when
-									images are uploaded. Disable to reduce API costs
-									or for manual control.
+									Automatically generate AI-powered alt text
+									when images are uploaded. Disable to reduce
+									API costs or for manual control.
 								</label>
 							</fieldset>
 						</td>
@@ -320,10 +287,16 @@ const GeneralTab = () => {
 								<input
 									type="number"
 									id="flows_per_page"
-									value={ formState.flows_per_page }
+									value={ form.data.flows_per_page }
 									onChange={ ( e ) =>
-										handleFlowsPerPageChange(
-											e.target.value
+										updateField(
+											'flows_per_page',
+											clamp(
+												e.target.value,
+												5,
+												100,
+												20
+											)
 										)
 									}
 									min="5"
@@ -345,10 +318,16 @@ const GeneralTab = () => {
 								<input
 									type="number"
 									id="jobs_per_page"
-									value={ formState.jobs_per_page }
+									value={ form.data.jobs_per_page }
 									onChange={ ( e ) =>
-										handleJobsPerPageChange(
-											e.target.value
+										updateField(
+											'jobs_per_page',
+											clamp(
+												e.target.value,
+												5,
+												100,
+												50
+											)
 										)
 									}
 									min="5"
@@ -367,7 +346,8 @@ const GeneralTab = () => {
 
 			<h3>Queue Performance</h3>
 			<p className="description datamachine-section-description">
-				Tune Action Scheduler for faster parallel execution. Higher values = more throughput but higher server load.
+				Tune Action Scheduler for faster parallel execution. Higher
+				values = more throughput but higher server load.
 			</p>
 			<table className="form-table">
 				<tbody>
@@ -378,9 +358,12 @@ const GeneralTab = () => {
 								<input
 									type="number"
 									id="concurrent_batches"
-									value={ formState.queue_tuning?.concurrent_batches ?? 3 }
+									value={
+										form.data.queue_tuning
+											?.concurrent_batches ?? 3
+									}
 									onChange={ ( e ) =>
-										handleQueueTuningChange(
+										updateQueueTuning(
 											'concurrent_batches',
 											e.target.value
 										)
@@ -390,8 +373,9 @@ const GeneralTab = () => {
 									className="small-text"
 								/>
 								<p className="description">
-									Number of action batches that can run simultaneously.
-									Higher = faster processing, but more server load. (1-10, default: 3)
+									Number of action batches that can run
+									simultaneously. Higher = faster processing,
+									but more server load. (1-10, default: 3)
 								</p>
 							</fieldset>
 						</td>
@@ -404,9 +388,11 @@ const GeneralTab = () => {
 								<input
 									type="number"
 									id="batch_size"
-									value={ formState.queue_tuning?.batch_size ?? 25 }
+									value={
+										form.data.queue_tuning?.batch_size ?? 25
+									}
 									onChange={ ( e ) =>
-										handleQueueTuningChange(
+										updateQueueTuning(
 											'batch_size',
 											e.target.value
 										)
@@ -416,8 +402,10 @@ const GeneralTab = () => {
 									className="small-text"
 								/>
 								<p className="description">
-									Number of actions claimed per batch.
-									For AI-heavy workloads, smaller batches with more concurrency often works better. (10-200, default: 25)
+									Number of actions claimed per batch. For
+									AI-heavy workloads, smaller batches with
+									more concurrency often works better. (10-200,
+									default: 25)
 								</p>
 							</fieldset>
 						</td>
@@ -430,9 +418,11 @@ const GeneralTab = () => {
 								<input
 									type="number"
 									id="time_limit"
-									value={ formState.queue_tuning?.time_limit ?? 60 }
+									value={
+										form.data.queue_tuning?.time_limit ?? 60
+									}
 									onChange={ ( e ) =>
-										handleQueueTuningChange(
+										updateQueueTuning(
 											'time_limit',
 											e.target.value
 										)
@@ -442,8 +432,9 @@ const GeneralTab = () => {
 									className="small-text"
 								/>
 								<p className="description">
-									Maximum seconds per batch execution.
-									AI steps with external API calls may need longer limits. (15-300, default: 60)
+									Maximum seconds per batch execution. AI
+									steps with external API calls may need
+									longer limits. (15-300, default: 60)
 								</p>
 							</fieldset>
 						</td>
@@ -451,34 +442,11 @@ const GeneralTab = () => {
 				</tbody>
 			</table>
 
-			<div className="datamachine-settings-submit">
-				<button
-					type="button"
-					className="button button-primary"
-					onClick={ handleSave }
-					disabled={ ! hasChanges || saveStatus === 'saving' }
-				>
-					{ saveStatus === 'saving' ? 'Saving...' : 'Save Changes' }
-				</button>
-
-				{ hasChanges && saveStatus !== 'saving' && (
-					<span className="datamachine-unsaved-indicator">
-						Unsaved changes
-					</span>
-				) }
-
-				{ saveStatus === 'saved' && (
-					<span className="datamachine-saved-indicator">
-						Settings saved!
-					</span>
-				) }
-
-				{ saveStatus === 'error' && (
-					<span className="datamachine-error-indicator">
-						Error saving settings
-					</span>
-				) }
-			</div>
+			<SettingsSaveBar
+				hasChanges={ save.hasChanges }
+				saveStatus={ save.saveStatus }
+				onSave={ save.handleSave }
+			/>
 		</div>
 	);
 };

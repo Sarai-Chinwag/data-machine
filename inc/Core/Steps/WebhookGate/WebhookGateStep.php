@@ -42,13 +42,7 @@ class WebhookGateStep extends Step {
 			usesHandler: false,
 			hasPipelineConfig: false,
 			consumeAllPackets: false,
-			stepSettings: [
-				'config_type' => 'inline',
-				'modal_type'  => 'configure-step',
-				'button_text' => 'Configure',
-				'label'       => 'Webhook Gate Configuration',
-			],
-			showSettingsDisplay: false
+			showSettingsDisplay: true
 		);
 
 		self::registerStepSettings();

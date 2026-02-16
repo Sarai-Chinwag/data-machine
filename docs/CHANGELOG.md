@@ -2,6 +2,20 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## Unreleased
+
+### Added
+- Pinterest publish handler (#175)
+- Job fail/retry abilities and CLI commands (#171)
+- CLI logs commands (#170)
+- Job show/list improvements with source-aware display and Action Scheduler status (#172)
+- Pipeline --set-system-prompt CLI flag (#164)
+
+### Fixed
+- JPEG conversion crash — use wp_get_image_mime() instead of protected get_mime_type() (#165)
+- Sideloaded image JPEG conversion for smaller file sizes (#161)
+- Queue subcommands show proper --help output (#176)
+
 ## [0.23.2] - 2026-02-16
 
 ### Fixed

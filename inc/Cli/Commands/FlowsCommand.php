@@ -246,8 +246,8 @@ class FlowsCommand extends BaseCommand {
 			return;
 		}
 
-		// Handle 'get' subcommand: `flows get 42`.
-		if ( ! empty( $args ) && 'get' === $args[0] ) {
+		// Handle 'get'/'show' subcommand: `flows get 42` or `flows show 42`.
+		if ( ! empty( $args ) && ( 'get' === $args[0] || 'show' === $args[0] ) ) {
 			if ( isset( $args[1] ) ) {
 				$flow_id = (int) $args[1];
 			}

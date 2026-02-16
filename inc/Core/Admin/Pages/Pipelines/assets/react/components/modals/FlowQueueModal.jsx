@@ -43,6 +43,7 @@ export default function FlowQueueModal( {
 	flowId,
 	flowStepId,
 	flowName,
+	pipelineId,
 } ) {
 	const [ newPrompt, setNewPrompt ] = useState( '' );
 	const [ confirmClear, setConfirmClear ] = useState( false );
@@ -74,10 +75,11 @@ export default function FlowQueueModal( {
 			updateSettingsMutation.mutate( {
 				flowId,
 				flowStepId,
+				pipelineId,
 				queueEnabled: enabled,
 			} );
 		},
-		[ flowId, flowStepId, updateSettingsMutation ]
+		[ flowId, flowStepId, pipelineId, updateSettingsMutation ]
 	);
 
 	/**
@@ -90,7 +92,7 @@ export default function FlowQueueModal( {
 		}
 
 		addMutation.mutate(
-			{ flowId, flowStepId, prompts: trimmed },
+			{ flowId, flowStepId, pipelineId, prompts: trimmed },
 			{
 				onSuccess: () => {
 					setNewPrompt( '' );
@@ -104,9 +106,9 @@ export default function FlowQueueModal( {
 	 */
 	const handleRemove = useCallback(
 		( index ) => {
-			removeMutation.mutate( { flowId, flowStepId, index } );
+			removeMutation.mutate( { flowId, flowStepId, pipelineId, index } );
 		},
-		[ flowId, flowStepId, removeMutation ]
+		[ flowId, flowStepId, pipelineId, removeMutation ]
 	);
 
 	/**
@@ -119,7 +121,7 @@ export default function FlowQueueModal( {
 		}
 
 		clearMutation.mutate(
-			{ flowId, flowStepId },
+			{ flowId, flowStepId, pipelineId },
 			{
 				onSuccess: () => {
 					setConfirmClear( false );

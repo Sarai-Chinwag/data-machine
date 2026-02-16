@@ -37,6 +37,7 @@ import { AUTO_SAVE_DELAY } from '../../utils/constants';
 export default function QueueablePromptField( {
 	flowId,
 	flowStepId,
+	pipelineId,
 	prompt = '',
 	promptQueue = [],
 	queueEnabled = false,
@@ -97,6 +98,7 @@ export default function QueueablePromptField( {
 					response = await updateQueueItemMutation.mutateAsync( {
 						flowId,
 						flowStepId,
+						pipelineId,
 						index: 0,
 						prompt: message,
 					} );
@@ -104,6 +106,7 @@ export default function QueueablePromptField( {
 					response = await addToQueueMutation.mutateAsync( {
 						flowId,
 						flowStepId,
+						pipelineId,
 						prompt: message,
 					} );
 				}

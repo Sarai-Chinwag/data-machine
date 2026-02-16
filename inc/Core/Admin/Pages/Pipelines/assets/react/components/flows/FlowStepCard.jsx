@@ -164,6 +164,7 @@ export default function FlowStepCard( {
 						<QueueablePromptField
 							flowId={ flowId }
 							flowStepId={ flowStepId }
+							pipelineId={ pipelineId }
 							prompt={ currentPrompt }
 							promptQueue={ promptQueue }
 							queueEnabled={ queueEnabled }

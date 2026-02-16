@@ -59,6 +59,7 @@ require_once __DIR__ . '/inc/Engine/AI/Tools/Global/LocalSearch.php';
 require_once __DIR__ . '/inc/Engine/AI/Tools/Global/WebFetch.php';
 require_once __DIR__ . '/inc/Engine/AI/Tools/Global/WordPressPostReader.php';
 require_once __DIR__ . '/inc/Engine/AI/Tools/Global/ImageGeneration.php';
+require_once __DIR__ . '/inc/Engine/AI/Tools/Global/BingWebmaster.php';
 require_once __DIR__ . '/inc/Engine/AI/Tools/Global/QueueValidator.php';
 require_once __DIR__ . '/inc/Engine/AI/System/Tasks/SystemTask.php';
 require_once __DIR__ . '/inc/Engine/AI/System/Tasks/ImageGenerationTask.php';
@@ -166,6 +167,7 @@ function datamachine_run_datamachine_plugin() {
 	require_once __DIR__ . '/inc/Abilities/SystemAbilities.php';
 	require_once __DIR__ . '/inc/Abilities/Media/AltTextAbilities.php';
 	require_once __DIR__ . '/inc/Abilities/Media/ImageGenerationAbilities.php';
+	require_once __DIR__ . '/inc/Abilities/Analytics/BingWebmasterAbilities.php';
 	require_once __DIR__ . '/inc/Abilities/AgentPingAbilities.php';
 	require_once __DIR__ . '/inc/Abilities/TaxonomyAbilities.php';
 	// Defer ability instantiation to init so translations are loaded.
@@ -188,6 +190,7 @@ function datamachine_run_datamachine_plugin() {
 		new \DataMachine\Engine\AI\System\SystemAgentServiceProvider();
 		new \DataMachine\Abilities\Media\AltTextAbilities();
 		new \DataMachine\Abilities\Media\ImageGenerationAbilities();
+		new \DataMachine\Abilities\Analytics\BingWebmasterAbilities();
 		new \DataMachine\Abilities\AgentPingAbilities();
 		new \DataMachine\Abilities\TaxonomyAbilities();
 	} );

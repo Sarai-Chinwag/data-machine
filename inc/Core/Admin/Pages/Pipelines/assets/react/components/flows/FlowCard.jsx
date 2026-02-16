@@ -9,7 +9,6 @@ import { useCallback, useState, useRef, useEffect } from '@wordpress/element';
 /**
  * External dependencies
  */
-import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardBody, CardDivider } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 /**
@@ -24,8 +23,8 @@ import {
 	useDuplicateFlow,
 	useRunFlow,
 } from '../../queries/flows';
-import { fetchFlow } from '../../utils/api';
 import { useUIStore } from '../../stores/uiStore';
+import useFlowReconciliation from '../../hooks/useFlowReconciliation';
 
 import { MODAL_TYPES } from '../../utils/constants';
 import { isSameId } from '../../utils/ids';
@@ -50,20 +49,16 @@ function FlowCardContent( props ) {
 	const deleteFlowMutation = useDeleteFlow();
 	const duplicateFlowMutation = useDuplicateFlow();
 	const runFlowMutation = useRunFlow();
-	const queryClient = useQueryClient();
 	const { openModal } = useUIStore();
+	const { optimisticLastRunDisplay, reconcile } = useFlowReconciliation();
 
 	// Run success state for temporary button feedback
 	const [ runSuccess, setRunSuccess ] = useState( false );
-	const [ optimisticLastRunDisplay, setOptimisticLastRunDisplay ] =
-		useState( null );
-	const reconcileTokenRef = useRef( 0 );
 	const successTimeout = useRef( null );
 
 	// Cleanup timeout on unmount
 	useEffect( () => {
 		return () => {
-			reconcileTokenRef.current += 1;
 			if ( successTimeout.current ) {
 				clearTimeout( successTimeout.current );
 			}
@@ -139,87 +134,11 @@ function FlowCardContent( props ) {
 		[ duplicateFlowMutation, onFlowDuplicated, currentFlowData.pipeline_id ]
 	);
 
-	const sleep = useCallback(
-		( ms ) => new Promise( ( r ) => setTimeout( r, ms ) ),
-		[]
-	);
-
-	const reconcileFlowAfterRun = useCallback(
-		async ( flowId, pipelineId, baselineLastRun, token ) => {
-			const delays = [ 500, 1000, 2000, 4000, 8000 ];
-
-			for ( const delay of delays ) {
-				await sleep( delay );
-
-				if ( reconcileTokenRef.current !== token ) {
-					return;
-				}
-
-				try {
-					const response = await fetchFlow( flowId );
-					if ( ! response?.success || ! response?.data ) {
-						continue;
-					}
-
-					const updatedFlow = response.data;
-
-					queryClient.setQueryData(
-						[ 'flows', 'single', flowId ],
-						updatedFlow
-					);
-
-					if ( pipelineId ) {
-						queryClient.setQueriesData(
-							{ queryKey: [ 'flows', pipelineId ], exact: false },
-							( oldData ) => {
-								if (
-									! oldData?.flows ||
-									! Array.isArray( oldData.flows )
-								) {
-									return oldData;
-								}
-
-								return {
-									...oldData,
-									flows: oldData.flows.map(
-										( existingFlow ) =>
-											isSameId(
-												existingFlow.flow_id,
-												flowId
-											)
-												? updatedFlow
-												: existingFlow
-									),
-								};
-							}
-						);
-					}
-
-					if (
-						updatedFlow.last_run &&
-						updatedFlow.last_run !== baselineLastRun
-					) {
-						setOptimisticLastRunDisplay( null );
-						return;
-					}
-				} catch ( err ) {
-					continue;
-				}
-			}
-		},
-		[ queryClient, sleep ]
-	);
-
 	/**
 	 * Handle flow execution
 	 */
 	const handleRun = useCallback(
 		async ( flowId ) => {
-			const token = reconcileTokenRef.current + 1;
-			reconcileTokenRef.current = token;
-
-			setOptimisticLastRunDisplay( __( 'Queued', 'data-machine' ) );
-
 			try {
 				await runFlowMutation.mutateAsync( flowId );
 				setRunSuccess( true );
@@ -227,14 +146,12 @@ function FlowCardContent( props ) {
 					setRunSuccess( false );
 				}, 2000 );
 
-				reconcileFlowAfterRun(
+				reconcile( {
 					flowId,
-					currentFlowData.pipeline_id,
-					currentFlowData.last_run,
-					token
-				);
+					pipelineId: currentFlowData.pipeline_id,
+					baselineLastRun: currentFlowData.last_run,
+				} );
 			} catch ( error ) {
-				setOptimisticLastRunDisplay( null );
 				// eslint-disable-next-line no-console
 				console.error( 'Flow execution error:', error );
 				// eslint-disable-next-line no-alert, no-undef
@@ -249,7 +166,7 @@ function FlowCardContent( props ) {
 		[
 			currentFlowData.last_run,
 			currentFlowData.pipeline_id,
-			reconcileFlowAfterRun,
+			reconcile,
 			runFlowMutation,
 		]
 	);

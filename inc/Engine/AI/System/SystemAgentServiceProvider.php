@@ -72,6 +72,13 @@ class SystemAgentServiceProvider {
 			'datamachine_system_agent_handle_task',
 			[ $this, 'handleScheduledTask' ]
 		);
+
+		add_action(
+			'datamachine_system_agent_set_featured_image',
+			[ $this, 'handleDeferredFeaturedImage' ],
+			10,
+			3
+		);
 	}
 
 	/**
@@ -85,5 +92,76 @@ class SystemAgentServiceProvider {
 	public function handleScheduledTask( int $jobId ): void {
 		$systemAgent = SystemAgent::getInstance();
 		$systemAgent->handleTask( $jobId );
+	}
+
+	/**
+	 * Handle deferred featured image assignment.
+	 *
+	 * Called when the System Agent finished image generation before the
+	 * pipeline published the post. Retries up to 12 times (3 minutes total
+	 * at 15-second intervals).
+	 *
+	 * @param int $attachmentId   WordPress attachment ID.
+	 * @param int $pipelineJobId  Pipeline job ID to check for post_id.
+	 * @param int $attempt        Current attempt number.
+	 */
+	public function handleDeferredFeaturedImage( int $attachmentId, int $pipelineJobId, int $attempt = 1 ): void {
+		$max_attempts = 12; // 12 × 15s = 3 minutes
+
+		$pipeline_engine_data = datamachine_get_engine_data( $pipelineJobId );
+		$post_id              = $pipeline_engine_data['post_id'] ?? 0;
+
+		if ( empty( $post_id ) ) {
+			if ( $attempt >= $max_attempts ) {
+				do_action(
+					'datamachine_log',
+					'warning',
+					"System Agent: Gave up waiting for post_id after {$max_attempts} attempts (pipeline job #{$pipelineJobId})",
+					[
+						'attachment_id'   => $attachmentId,
+						'pipeline_job_id' => $pipelineJobId,
+						'agent_type'      => 'system',
+					]
+				);
+				return;
+			}
+
+			// Reschedule
+			if ( function_exists( 'as_schedule_single_action' ) ) {
+				as_schedule_single_action(
+					time() + 15,
+					'datamachine_system_agent_set_featured_image',
+					[
+						'attachment_id'   => $attachmentId,
+						'pipeline_job_id' => $pipelineJobId,
+						'attempt'         => $attempt + 1,
+					],
+					'data-machine'
+				);
+			}
+			return;
+		}
+
+		// Don't overwrite existing featured image
+		if ( has_post_thumbnail( $post_id ) ) {
+			return;
+		}
+
+		$result = set_post_thumbnail( $post_id, $attachmentId );
+
+		do_action(
+			'datamachine_log',
+			$result ? 'info' : 'warning',
+			$result
+				? "System Agent: Deferred featured image set on post #{$post_id} (attempt #{$attempt})"
+				: "System Agent: Failed to set deferred featured image on post #{$post_id}",
+			[
+				'post_id'         => $post_id,
+				'attachment_id'   => $attachmentId,
+				'pipeline_job_id' => $pipelineJobId,
+				'attempt'         => $attempt,
+				'agent_type'      => 'system',
+			]
+		);
 	}
 }

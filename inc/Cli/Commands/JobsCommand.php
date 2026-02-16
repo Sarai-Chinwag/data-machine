@@ -24,7 +24,7 @@ class JobsCommand extends BaseCommand {
 	 *
 	 * @var array
 	 */
-	private array $default_fields = array( 'id', 'flow', 'status', 'created', 'completed' );
+	private array $default_fields = array( 'id', 'source', 'flow', 'status', 'created', 'completed' );
 
 	/**
 	 * Job abilities instance.
@@ -146,6 +146,9 @@ class JobsCommand extends BaseCommand {
 	 * [--flow=<flow_id>]
 	 * : Filter by flow ID.
 	 *
+	 * [--source=<source>]
+	 * : Filter by source (pipeline, system).
+	 *
 	 * [--limit=<limit>]
 	 * : Number of jobs to show.
 	 * ---
@@ -235,13 +238,39 @@ class JobsCommand extends BaseCommand {
 			return;
 		}
 
+		// Filter by source if specified.
+		$source_filter = $assoc_args['source'] ?? null;
+		if ( $source_filter ) {
+			$jobs = array_filter(
+				$jobs,
+				function ( $j ) use ( $source_filter ) {
+					return ( $j['source'] ?? 'pipeline' ) === $source_filter;
+				}
+			);
+			$jobs = array_values( $jobs );
+
+			if ( empty( $jobs ) ) {
+				WP_CLI::warning( sprintf( 'No %s jobs found.', $source_filter ) );
+				return;
+			}
+		}
+
 		// Transform jobs to flat row format.
 		$items = array_map(
 			function ( $j ) {
+				$source         = $j['source'] ?? 'pipeline';
 				$status_display = strlen( $j['status'] ?? '' ) > 40 ? substr( $j['status'], 0, 40 ) . '...' : ( $j['status'] ?? '' );
+
+				if ( 'system' === $source ) {
+					$flow_display = $j['label'] ?? $j['display_label'] ?? 'System Task';
+				} else {
+					$flow_display = $j['flow_name'] ?? ( isset( $j['flow_id'] ) ? "Flow {$j['flow_id']}" : '' );
+				}
+
 				return array(
 					'id'        => $j['job_id'] ?? '',
-					'flow'      => $j['flow_name'] ?? ( isset( $j['flow_id'] ) ? "Flow {$j['flow_id']}" : '' ),
+					'source'    => $source,
+					'flow'      => $flow_display,
 					'status'    => $status_display,
 					'created'   => $j['created_at'] ?? '',
 					'completed' => $j['completed_at'] ?? '-',
@@ -335,10 +364,19 @@ class JobsCommand extends BaseCommand {
 	 */
 	private function outputJobTable( array $job ): void {
 		$parsed_status = $this->parseCompoundStatus( $job['status'] ?? '' );
+		$source        = $job['source'] ?? 'pipeline';
+		$is_system     = ( 'system' === $source );
 
 		WP_CLI::log( sprintf( 'Job ID: %d', $job['job_id'] ?? 0 ) );
-		WP_CLI::log( sprintf( 'Flow: %s (ID: %s)', $job['flow_name'] ?? 'N/A', $job['flow_id'] ?? 'N/A' ) );
-		WP_CLI::log( sprintf( 'Pipeline ID: %s', $job['pipeline_id'] ?? 'N/A' ) );
+
+		if ( $is_system ) {
+			WP_CLI::log( sprintf( 'Source: %s', $source ) );
+			WP_CLI::log( sprintf( 'Label: %s', $job['label'] ?? $job['display_label'] ?? 'System Task' ) );
+		} else {
+			WP_CLI::log( sprintf( 'Flow: %s (ID: %s)', $job['flow_name'] ?? 'N/A', $job['flow_id'] ?? 'N/A' ) );
+			WP_CLI::log( sprintf( 'Pipeline ID: %s', $job['pipeline_id'] ?? 'N/A' ) );
+		}
+
 		WP_CLI::log( sprintf( 'Status: %s', $parsed_status['type'] ) );
 
 		if ( $parsed_status['reason'] ) {
@@ -348,6 +386,11 @@ class JobsCommand extends BaseCommand {
 		WP_CLI::log( '' );
 		WP_CLI::log( sprintf( 'Created: %s', $job['created_at_display'] ?? $job['created_at'] ?? 'N/A' ) );
 		WP_CLI::log( sprintf( 'Completed: %s', $job['completed_at_display'] ?? $job['completed_at'] ?? '-' ) );
+
+		// Show Action Scheduler status for processing/pending jobs (#169).
+		if ( in_array( $parsed_status['type'], array( 'processing', 'pending' ), true ) ) {
+			$this->outputActionSchedulerStatus( (int) ( $job['job_id'] ?? 0 ) );
+		}
 
 		$engine_data = $job['engine_data'] ?? array();
 
@@ -360,6 +403,68 @@ class JobsCommand extends BaseCommand {
 			foreach ( $summary as $key => $value ) {
 				WP_CLI::log( sprintf( '  %s: %s', $key, $value ) );
 			}
+		}
+	}
+
+	/**
+	 * Output Action Scheduler status for a job.
+	 *
+	 * Queries the Action Scheduler tables to find the latest action
+	 * and its logs for the given job ID. Helps diagnose stuck jobs
+	 * where the AS action may have failed or timed out.
+	 *
+	 * @param int $job_id Job ID to look up.
+	 */
+	private function outputActionSchedulerStatus( int $job_id ): void {
+		if ( $job_id <= 0 ) {
+			return;
+		}
+
+		global $wpdb;
+		$actions_table = $wpdb->prefix . 'actionscheduler_actions';
+		$logs_table    = $wpdb->prefix . 'actionscheduler_logs';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$action = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT action_id, status, scheduled_date_gmt, last_attempt_gmt
+				FROM %i
+				WHERE hook = 'datamachine_execute_step'
+				AND args LIKE %s
+				ORDER BY action_id DESC
+				LIMIT 1",
+				$actions_table,
+				'%"job_id":' . $job_id . '%'
+			)
+		);
+
+		if ( ! $action ) {
+			return;
+		}
+
+		WP_CLI::log( '' );
+		WP_CLI::log( 'Action Scheduler:' );
+		WP_CLI::log( sprintf( '  Action ID: %d', $action->action_id ) );
+		WP_CLI::log( sprintf( '  AS Status: %s', $action->status ) );
+		WP_CLI::log( sprintf( '  Scheduled: %s', $action->scheduled_date_gmt ) );
+		WP_CLI::log( sprintf( '  Last Attempt: %s', $action->last_attempt_gmt ) );
+
+		// Get the latest log message (usually contains failure reason).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$log = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT message, log_date_gmt
+				FROM %i
+				WHERE action_id = %d
+				ORDER BY log_id DESC
+				LIMIT 1",
+				$logs_table,
+				$action->action_id
+			)
+		);
+
+		if ( $log && ! empty( $log->message ) ) {
+			WP_CLI::log( sprintf( '  Last Log: %s (%s)', $log->message, $log->log_date_gmt ) );
 		}
 	}
 

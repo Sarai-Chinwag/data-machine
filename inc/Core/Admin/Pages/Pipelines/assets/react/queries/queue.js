@@ -22,6 +22,26 @@ import {
 import { normalizeId } from '../utils/ids';
 
 /**
+ * Invalidate flows cache scoped to a specific pipeline when available.
+ * Falls back to invalidating all flows if pipelineId is not provided.
+ *
+ * @param {Object}        queryClient - TanStack Query client
+ * @param {number|string} pipelineId  - Pipeline ID (optional)
+ */
+const invalidateFlows = ( queryClient, pipelineId ) => {
+	const cachedPipelineId = pipelineId ? normalizeId( pipelineId ) : null;
+	if ( cachedPipelineId ) {
+		queryClient.invalidateQueries( {
+			queryKey: [ 'flows', cachedPipelineId ],
+		} );
+	} else {
+		queryClient.invalidateQueries( {
+			queryKey: [ 'flows' ],
+		} );
+	}
+};
+
+/**
  * Fetch queue for a flow
  *
  * @param {number} flowId     - Flow ID
@@ -60,7 +80,7 @@ export const useAddToQueue = () => {
 	return useMutation( {
 		mutationFn: ( { flowId, flowStepId, prompts } ) =>
 			addToFlowQueue( flowId, flowStepId, prompts ),
-		onSuccess: ( response, { flowId, flowStepId } ) => {
+		onSuccess: ( response, { flowId, flowStepId, pipelineId } ) => {
 			if ( ! response?.success ) {
 				return;
 			}
@@ -71,9 +91,7 @@ export const useAddToQueue = () => {
 				queryKey: [ 'flowQueue', cachedFlowId, cachedFlowStepId ],
 			} );
 
-			queryClient.invalidateQueries( {
-				queryKey: [ 'flows' ],
-			} );
+			invalidateFlows( queryClient, pipelineId );
 		},
 	} );
 };
@@ -89,7 +107,7 @@ export const useClearQueue = () => {
 	return useMutation( {
 		mutationFn: ( { flowId, flowStepId } ) =>
 			clearFlowQueue( flowId, flowStepId ),
-		onSuccess: ( response, { flowId, flowStepId } ) => {
+		onSuccess: ( response, { flowId, flowStepId, pipelineId } ) => {
 			if ( ! response?.success ) {
 				return;
 			}
@@ -116,9 +134,7 @@ export const useClearQueue = () => {
 				}
 			);
 
-			queryClient.invalidateQueries( {
-				queryKey: [ 'flows' ],
-			} );
+			invalidateFlows( queryClient, pipelineId );
 		},
 	} );
 };
@@ -179,7 +195,7 @@ export const useRemoveFromQueue = () => {
 				);
 			}
 		},
-		onSettled: ( response, error, { flowId, flowStepId } ) => {
+		onSettled: ( response, error, { flowId, flowStepId, pipelineId } ) => {
 			// Refetch to ensure we're in sync
 			const cachedFlowId = normalizeId( flowId );
 			const cachedFlowStepId = flowStepId ? String( flowStepId ) : null;
@@ -187,9 +203,7 @@ export const useRemoveFromQueue = () => {
 				queryKey: [ 'flowQueue', cachedFlowId, cachedFlowStepId ],
 			} );
 
-			queryClient.invalidateQueries( {
-				queryKey: [ 'flows' ],
-			} );
+			invalidateFlows( queryClient, pipelineId );
 		},
 	} );
 };
@@ -262,7 +276,7 @@ export const useUpdateQueueItem = () => {
 				);
 			}
 		},
-		onSettled: ( response, error, { flowId, flowStepId } ) => {
+		onSettled: ( response, error, { flowId, flowStepId, pipelineId } ) => {
 			// Refetch to ensure we're in sync
 			const cachedFlowId = normalizeId( flowId );
 			const cachedFlowStepId = flowStepId ? String( flowStepId ) : null;
@@ -271,9 +285,7 @@ export const useUpdateQueueItem = () => {
 			} );
 
 			// Also invalidate the flows cache since prompt_queue is in flow_config
-			queryClient.invalidateQueries( {
-				queryKey: [ 'flows' ],
-			} );
+			invalidateFlows( queryClient, pipelineId );
 		},
 	} );
 };
@@ -327,15 +339,13 @@ export const useUpdateQueueSettings = () => {
 				);
 			}
 		},
-		onSettled: ( response, error, { flowId, flowStepId } ) => {
+		onSettled: ( response, error, { flowId, flowStepId, pipelineId } ) => {
 			const cachedFlowId = normalizeId( flowId );
 			const cachedFlowStepId = flowStepId ? String( flowStepId ) : null;
 			queryClient.invalidateQueries( {
 				queryKey: [ 'flowQueue', cachedFlowId, cachedFlowStepId ],
 			} );
-			queryClient.invalidateQueries( {
-				queryKey: [ 'flows' ],
-			} );
+			invalidateFlows( queryClient, pipelineId );
 		},
 	} );
 };

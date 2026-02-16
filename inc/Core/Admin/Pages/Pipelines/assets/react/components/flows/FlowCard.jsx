@@ -282,9 +282,10 @@ function FlowCardContent( props ) {
 				flowId: currentFlowData.flow_id,
 				flowStepId,
 				flowName: currentFlowData.flow_name,
+				pipelineId: currentFlowData.pipeline_id,
 			} );
 		},
-		[ currentFlowData.flow_id, currentFlowData.flow_name, openModal ]
+		[ currentFlowData.flow_id, currentFlowData.flow_name, currentFlowData.pipeline_id, openModal ]
 	);
 
 	/**

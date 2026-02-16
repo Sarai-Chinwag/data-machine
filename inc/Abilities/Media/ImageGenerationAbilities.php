@@ -179,7 +179,7 @@ class ImageGenerationAbilities {
 
 		// Start Replicate prediction.
 		$result = HttpClient::post(
-			'https://api.replicate.com/v1/predictions',
+			"https://api.replicate.com/v1/models/{$model}/predictions",
 			[
 				'timeout' => 30,
 				'headers' => [
@@ -187,7 +187,6 @@ class ImageGenerationAbilities {
 					'Content-Type'  => 'application/json',
 				],
 				'body'    => wp_json_encode( [
-					'model' => $model,
 					'input' => $input_params,
 				] ),
 				'context' => 'Image Generation Ability',

@@ -70,6 +70,14 @@ class PipelinesCommand extends BaseCommand {
 	 * [--config=<json>]
 	 * : JSON object with pipeline configuration (update subcommand).
 	 *
+	 * [--set-system-prompt=<text>]
+	 * : Update the system prompt for an AI step (update subcommand).
+	 *   Auto-resolves to the only AI step if pipeline has exactly one.
+	 *   Use --step to target a specific step when multiple AI steps exist.
+	 *
+	 * [--step=<pipeline_step_id>]
+	 * : Target a specific pipeline step for system prompt update.
+	 *
 	 * [--force]
 	 * : Skip confirmation prompt (delete subcommand).
 	 *
@@ -120,6 +128,12 @@ class PipelinesCommand extends BaseCommand {
 	 *
 	 *     # Delete a pipeline (with confirmation)
 	 *     wp datamachine pipelines delete 5
+	 *
+	 *     # Update system prompt (auto-resolves if one AI step)
+	 *     wp datamachine pipelines update 12 --set-system-prompt="Write a blog post..."
+	 *
+	 *     # Update system prompt on specific step
+	 *     wp datamachine pipelines update 12 --step=12_abc123 --set-system-prompt="Write a blog post..."
 	 *
 	 *     # Delete a pipeline (skip confirmation)
 	 *     wp datamachine pipelines delete 5 --force
@@ -419,11 +433,12 @@ class PipelinesCommand extends BaseCommand {
 			return;
 		}
 
-		$has_name   = isset( $assoc_args['name'] );
-		$has_config = isset( $assoc_args['config'] );
+		$has_name          = isset( $assoc_args['name'] );
+		$has_config        = isset( $assoc_args['config'] );
+		$has_system_prompt = isset( $assoc_args['set-system-prompt'] );
 
-		if ( ! $has_name && ! $has_config ) {
-			WP_CLI::error( 'Must provide --name and/or --config to update' );
+		if ( ! $has_name && ! $has_config && ! $has_system_prompt ) {
+			WP_CLI::error( 'Must provide --name, --config, and/or --set-system-prompt to update' );
 			return;
 		}
 
@@ -511,6 +526,38 @@ class PipelinesCommand extends BaseCommand {
 			}
 		}
 
+		// Handle --set-system-prompt shorthand.
+		if ( $has_system_prompt ) {
+			$system_prompt = wp_kses_post( wp_unslash( $assoc_args['set-system-prompt'] ) );
+			$step_id       = $assoc_args['step'] ?? null;
+
+			if ( null === $step_id ) {
+				$resolved = $this->resolveAiStep( $pipeline_id );
+				if ( $resolved['error'] ) {
+					WP_CLI::error( $resolved['error'] );
+					return;
+				}
+				$step_id = $resolved['step_id'];
+			}
+
+			$step_ability  = new \DataMachine\Abilities\PipelineStepAbilities();
+			$prompt_result = $step_ability->executeUpdatePipelineStep(
+				[
+					'pipeline_id'      => $pipeline_id,
+					'pipeline_step_id' => $step_id,
+					'system_prompt'    => $system_prompt,
+				]
+			);
+
+			if ( ! $prompt_result['success'] ) {
+				WP_CLI::warning( 'Failed to update system prompt: ' . ( $prompt_result['error'] ?? 'Unknown error' ) );
+				$step_results[ $step_id ] = $prompt_result;
+			} else {
+				WP_CLI::log( sprintf( 'System prompt updated for step: %s', $step_id ) );
+				$step_results[ $step_id ] = $prompt_result;
+			}
+		}
+
 		// Determine if any updates succeeded.
 		$any_success = ( $result && $result['success'] ) ||
 			array_filter( $step_results, fn( $r ) => $r['success'] ?? false );
@@ -539,6 +586,54 @@ class PipelinesCommand extends BaseCommand {
 				WP_CLI::line( wp_json_encode( $output, JSON_PRETTY_PRINT ) );
 			}
 		}
+	}
+
+	/**
+	 * Resolve the AI step for a pipeline.
+	 *
+	 * If the pipeline has exactly one AI step, returns its ID.
+	 * If multiple AI steps exist, returns an error listing available step IDs.
+	 *
+	 * @param int $pipeline_id Pipeline ID.
+	 * @return array{step_id?: string, error?: string}
+	 */
+	private function resolveAiStep( int $pipeline_id ): array {
+		$ability = new \DataMachine\Abilities\PipelineAbilities();
+		$result  = $ability->executeGetPipelines(
+			[
+				'pipeline_id' => $pipeline_id,
+				'output_mode' => 'full',
+			]
+		);
+
+		if ( ! $result['success'] || empty( $result['pipelines'] ) ) {
+			return [ 'error' => 'Pipeline not found' ];
+		}
+
+		$config   = $result['pipelines'][0]['pipeline_config'] ?? [];
+		$ai_steps = [];
+
+		foreach ( $config as $step_id => $step ) {
+			if ( 'ai' === ( $step['step_type'] ?? '' ) ) {
+				$ai_steps[] = [
+					'id'    => $step_id,
+					'label' => $step['label'] ?? $step['step_type'] ?? 'AI',
+				];
+			}
+		}
+
+		if ( empty( $ai_steps ) ) {
+			return [ 'error' => 'Pipeline has no AI steps' ];
+		}
+
+		if ( count( $ai_steps ) > 1 ) {
+			$ids = array_map( fn( $s ) => sprintf( '  %s (%s)', $s['id'], $s['label'] ), $ai_steps );
+			return [
+				'error' => "Pipeline has multiple AI steps. Use --step=<pipeline_step_id> to target one:\n" . implode( "\n", $ids ),
+			];
+		}
+
+		return [ 'step_id' => $ai_steps[0]['id'] ];
 	}
 
 	/**

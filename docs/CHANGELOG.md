@@ -2,7 +2,7 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
-## Unreleased
+## [0.24.0] - 2026-02-16
 
 ### Added
 - Pinterest publish handler (#175)

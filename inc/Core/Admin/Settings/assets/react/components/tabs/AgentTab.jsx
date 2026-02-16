@@ -2,6 +2,7 @@
  * AgentTab Component
  *
  * AI agent settings including tools, system prompt, provider/model, and conversation limits.
+ * Uses useFormState for form management and SettingsSaveBar for save UI.
  */
 
 /**
@@ -9,90 +10,90 @@
  */
 import { useState, useEffect } from '@wordpress/element';
 import { Button } from '@wordpress/components';
+
 /**
  * Internal dependencies
  */
 import { useSettings, useUpdateSettings } from '../../queries/settings';
 import ToolConfigModal from '../ToolConfigModal';
+import { useFormState } from '@shared/hooks/useFormState';
+import SettingsSaveBar, {
+	useSaveStatus,
+} from '@shared/components/SettingsSaveBar';
+
 /**
  * External dependencies
  */
 import ProviderModelSelector from '@shared/components/ai/ProviderModelSelector';
 
+const DEFAULTS = {
+	enabled_tools: {},
+	global_system_prompt: '',
+	default_provider: '',
+	default_model: '',
+	site_context_enabled: false,
+	max_turns: 12,
+};
+
 const AgentTab = () => {
 	const { data, isLoading, error } = useSettings();
 	const updateMutation = useUpdateSettings();
-
-	const [ formState, setFormState ] = useState( {
-		enabled_tools: {},
-		global_system_prompt: '',
-		default_provider: '',
-		default_model: '',
-		site_context_enabled: false,
-		max_turns: 12,
-	} );
-	const [ hasChanges, setHasChanges ] = useState( false );
-	const [ saveStatus, setSaveStatus ] = useState( null );
 	const [ openToolId, setOpenToolId ] = useState( null );
 
+	const form = useFormState( {
+		initialData: DEFAULTS,
+		onSubmit: ( formData ) => updateMutation.mutateAsync( formData ),
+	} );
+
+	const save = useSaveStatus( {
+		onSave: () => form.submit(),
+	} );
+
+	// Sync server data → form state
 	useEffect( () => {
 		if ( data?.settings ) {
-			setFormState( {
+			form.reset( {
 				enabled_tools: data.settings.enabled_tools || {},
-				global_system_prompt: data.settings.global_system_prompt || '',
+				global_system_prompt:
+					data.settings.global_system_prompt || '',
 				default_provider: data.settings.default_provider || '',
 				default_model: data.settings.default_model || '',
 				site_context_enabled:
 					data.settings.site_context_enabled ?? false,
 				max_turns: data.settings.max_turns ?? 12,
 			} );
-			setHasChanges( false );
+			save.setHasChanges( false );
 		}
-	}, [ data ] );
+	}, [ data ] ); // eslint-disable-line react-hooks/exhaustive-deps
+
+	/**
+	 * Update a field and mark the form as changed.
+	 *
+	 * @param {string} field Field key
+	 * @param {*}      value New value
+	 */
+	const updateField = ( field, value ) => {
+		form.updateField( field, value );
+		save.markChanged();
+	};
 
 	const handleToolToggle = ( toolName, enabled ) => {
-		setFormState( ( prev ) => {
-			const newTools = { ...prev.enabled_tools };
-			if ( enabled ) {
-				newTools[ toolName ] = true;
-			} else {
-				delete newTools[ toolName ];
-			}
-			return { ...prev, enabled_tools: newTools };
-		} );
-		setHasChanges( true );
+		const newTools = { ...form.data.enabled_tools };
+		if ( enabled ) {
+			newTools[ toolName ] = true;
+		} else {
+			delete newTools[ toolName ];
+		}
+		form.updateField( 'enabled_tools', newTools );
+		save.markChanged();
 	};
 
 	const handleProviderChange = ( provider ) => {
-		setFormState( ( prev ) => ( {
-			...prev,
+		form.updateData( {
 			default_provider: provider,
 			default_model: '',
-		} ) );
-		setHasChanges( true );
-	};
-
-	const handleModelChange = ( model ) => {
-		setFormState( ( prev ) => ( { ...prev, default_model: model } ) );
-		setHasChanges( true );
-	};
-
-	const handleFieldChange = ( field, value ) => {
-		setFormState( ( prev ) => ( { ...prev, [ field ]: value } ) );
-		setHasChanges( true );
-	};
-
-	const handleSave = async () => {
-		setSaveStatus( 'saving' );
-		try {
-			await updateMutation.mutateAsync( formState );
-			setSaveStatus( 'saved' );
-			setHasChanges( false );
-			setTimeout( () => setSaveStatus( null ), 2000 );
-		} catch ( err ) {
-			setSaveStatus( 'error' );
-			setTimeout( () => setSaveStatus( null ), 3000 );
-		}
+		} );
+		save.markChanged();
 	};
 
 	if ( isLoading ) {
@@ -114,21 +115,13 @@ const AgentTab = () => {
 
 	const globalTools = data?.global_tools || {};
 
-	const openToolModal = ( toolId ) => {
-		setOpenToolId( toolId );
-	};
-
-	const closeToolModal = () => {
-		setOpenToolId( null );
-	};
-
 	return (
 		<div className="datamachine-agent-tab">
 			{ openToolId && (
 				<ToolConfigModal
 					toolId={ openToolId }
 					isOpen={ Boolean( openToolId ) }
-					onRequestClose={ closeToolModal }
+					onRequestClose={ () => setOpenToolId( null ) }
 				/>
 			) }
 			<table className="form-table">
@@ -138,100 +131,95 @@ const AgentTab = () => {
 						<td>
 							{ Object.keys( globalTools ).length > 0 ? (
 								<div className="datamachine-tool-config-grid">
-									{ globalTools &&
-										Object.entries( globalTools ).map(
-											( [ toolName, toolConfig ] ) => {
-												const isConfigured =
-													toolConfig.is_configured;
-												const isEnabled =
-													formState.enabled_tools?.[
-														toolName
-													] ?? false;
-												const toolLabel =
-													toolConfig.label ||
-													toolName.replace(
-														/_/g,
-														' '
-													);
+									{ Object.entries( globalTools ).map(
+										( [ toolName, toolConfig ] ) => {
+											const isConfigured =
+												toolConfig.is_configured;
+											const isEnabled =
+												form.data.enabled_tools?.[
+													toolName
+												] ?? false;
+											const toolLabel =
+												toolConfig.label ||
+												toolName.replace( /_/g, ' ' );
 
-												return (
-													<div
-														key={ toolName }
-														className="datamachine-tool-config-item"
-													>
-														<h4>{ toolLabel }</h4>
-														{ toolConfig.description && (
-															<p className="description">
-																{
-																	toolConfig.description
+											return (
+												<div
+													key={ toolName }
+													className="datamachine-tool-config-item"
+												>
+													<h4>{ toolLabel }</h4>
+													{ toolConfig.description && (
+														<p className="description">
+															{
+																toolConfig.description
+															}
+														</p>
+													) }
+													<div className="datamachine-tool-controls">
+														<span
+															className={ `datamachine-config-status ${
+																isConfigured
+																	? 'configured'
+																	: 'not-configured'
+															}` }
+														>
+															{ isConfigured
+																? 'Configured'
+																: 'Not Configured' }
+														</span>
+
+														{ toolConfig.requires_configuration && (
+															<Button
+																variant="secondary"
+																onClick={ () =>
+																	setOpenToolId(
+																		toolName
+																	)
 																}
-															</p>
-														) }
-														<div className="datamachine-tool-controls">
-															<span
-																className={ `datamachine-config-status ${
-																	isConfigured
-																		? 'configured'
-																		: 'not-configured'
-																}` }
 															>
-																{ isConfigured
-																	? 'Configured'
-																	: 'Not Configured' }
-															</span>
+																Configure
+															</Button>
+														) }
 
-															{ toolConfig.requires_configuration && (
-																<Button
-																	variant="secondary"
-																	onClick={ () =>
-																		openToolModal(
-																			toolName
+														{ isConfigured ? (
+															<label className="datamachine-tool-enabled-toggle">
+																<input
+																	type="checkbox"
+																	checked={
+																		isEnabled
+																	}
+																	onChange={ (
+																		e
+																	) =>
+																		handleToolToggle(
+																			toolName,
+																			e
+																				.target
+																				.checked
 																		)
 																	}
-																>
-																	Configure
-																</Button>
-															) }
-
-															{ isConfigured ? (
-																<label className="datamachine-tool-enabled-toggle">
-																	<input
-																		type="checkbox"
-																		checked={
-																			isEnabled
-																		}
-																		onChange={ (
-																			e
-																		) =>
-																			handleToolToggle(
-																				toolName,
-																				e
-																					.target
-																					.checked
-																			)
-																		}
-																	/>
-																	Enable for
-																	agents
-																</label>
-															) : (
-																<label className="datamachine-tool-enabled-toggle datamachine-tool-disabled">
-																	<input
-																		type="checkbox"
-																		disabled
-																	/>
-																	<span className="description">
-																		Configure
-																		to
-																		enable
-																	</span>
-																</label>
-															) }
-														</div>
+																/>
+																Enable for
+																agents
+															</label>
+														) : (
+															<label className="datamachine-tool-enabled-toggle datamachine-tool-disabled">
+																<input
+																	type="checkbox"
+																	disabled
+																/>
+																<span className="description">
+																	Configure to
+																	enable
+																</span>
+															</label>
+														) }
 													</div>
-												);
-											}
-										) }
+												</div>
+											);
+										}
+									) }
 								</div>
 							) : (
 								<p>No global tools are currently available.</p>
@@ -251,9 +239,9 @@ const AgentTab = () => {
 								rows="8"
 								cols="70"
 								className="large-text code"
-								value={ formState.global_system_prompt || '' }
+								value={ form.data.global_system_prompt || '' }
 								onChange={ ( e ) =>
-									handleFieldChange(
+									updateField(
 										'global_system_prompt',
 										e.target.value
 									)
@@ -273,10 +261,12 @@ const AgentTab = () => {
 						<td>
 							<div className="datamachine-ai-provider-model-settings">
 								<ProviderModelSelector
-									provider={ formState.default_provider }
-									model={ formState.default_model }
+									provider={ form.data.default_provider }
+									model={ form.data.default_model }
 									onProviderChange={ handleProviderChange }
-									onModelChange={ handleModelChange }
+									onModelChange={ ( model ) =>
+										updateField( 'default_model', model )
+									}
 									applyDefaults={ false }
 									providerLabel="Default AI Provider"
 									modelLabel="Default AI Model"
@@ -299,10 +289,10 @@ const AgentTab = () => {
 										type="checkbox"
 										id="site_context_enabled"
 										checked={
-											formState.site_context_enabled
+											form.data.site_context_enabled
 										}
 										onChange={ ( e ) =>
-											handleFieldChange(
+											updateField(
 												'site_context_enabled',
 												e.target.checked
 											)
@@ -330,9 +320,9 @@ const AgentTab = () => {
 							<input
 								type="number"
 								id="max_turns"
-								value={ formState.max_turns }
+								value={ form.data.max_turns }
 								onChange={ ( e ) =>
-									handleFieldChange(
+									updateField(
 										'max_turns',
 										Math.max(
 											1,
@@ -360,34 +350,11 @@ const AgentTab = () => {
 				</tbody>
 			</table>
 
-			<div className="datamachine-settings-submit">
-				<button
-					type="button"
-					className="button button-primary"
-					onClick={ handleSave }
-					disabled={ ! hasChanges || saveStatus === 'saving' }
-				>
-					{ saveStatus === 'saving' ? 'Saving...' : 'Save Changes' }
-				</button>
-
-				{ hasChanges && saveStatus !== 'saving' && (
-					<span className="datamachine-unsaved-indicator">
-						Unsaved changes
-					</span>
-				) }
-
-				{ saveStatus === 'saved' && (
-					<span className="datamachine-saved-indicator">
-						Settings saved!
-					</span>
-				) }
-
-				{ saveStatus === 'error' && (
-					<span className="datamachine-error-indicator">
-						Error saving settings
-					</span>
-				) }
-			</div>
+			<SettingsSaveBar
+				hasChanges={ save.hasChanges }
+				saveStatus={ save.saveStatus }
+				onSave={ save.handleSave }
+			/>
 		</div>
 	);
 };

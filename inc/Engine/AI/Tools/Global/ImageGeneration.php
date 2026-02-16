@@ -110,8 +110,8 @@ class ImageGeneration extends BaseTool {
 				),
 				'body'    => wp_json_encode(
 					array(
-						'version' => $model,
-						'input'   => $input_params,
+						'model' => $model,
+						'input' => $input_params,
 					)
 				),
 				'context' => 'Image Generation Tool',

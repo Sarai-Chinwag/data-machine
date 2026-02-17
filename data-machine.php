@@ -105,6 +105,10 @@ function datamachine_run_datamachine_plugin() {
 	\DataMachine\Api\Auth::register();
 	\DataMachine\Api\Chat\Chat::register();
 	\DataMachine\Api\System\System::register();
+	\DataMachine\Api\Handlers::register();
+	\DataMachine\Api\StepTypes::register();
+	\DataMachine\Api\Tools::register();
+	\DataMachine\Api\Providers::register();
 
 	// Load abilities
 	require_once __DIR__ . '/inc/Abilities/AuthAbilities.php';

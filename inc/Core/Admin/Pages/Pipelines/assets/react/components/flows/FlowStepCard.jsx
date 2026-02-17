@@ -104,7 +104,9 @@ export default function FlowStepCard( {
 	);
 
 	// Resolve handler info for settings display.
-	const usesHandler = stepTypeInfo.uses_handler !== '' && stepTypeInfo.uses_handler !== false;
+	// Strict positive check — defaults to false while step types are loading
+	// so non-handler step types (AI, Agent Ping, Webhook Gate) never flash handler UI.
+	const usesHandler = stepTypeInfo.uses_handler === true;
 	const effectiveHandlerSlug = usesHandler ? flowStepConfig.handler_slug : pipelineStep.step_type;
 
 	return (

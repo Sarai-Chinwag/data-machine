@@ -27,6 +27,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class StepTypes {
 
 	/**
+	 * Register the API endpoint.
+	 */
+	public static function register() {
+		add_action( 'rest_api_init', array( self::class, 'register_routes' ) );
+	}
+
+	/**
 	 * Register REST API routes
 	 *
 	 * @since 0.1.2
@@ -142,6 +149,3 @@ class StepTypes {
 		);
 	}
 }
-
-// Register routes on WordPress REST API initialization
-add_action( 'rest_api_init', array( StepTypes::class, 'register_routes' ) );

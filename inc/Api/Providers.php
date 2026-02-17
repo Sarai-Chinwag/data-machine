@@ -26,6 +26,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Providers {
 
 	/**
+	 * Register the API endpoint.
+	 */
+	public static function register() {
+		add_action( 'rest_api_init', array( self::class, 'register_routes' ) );
+	}
+
+	/**
 	 * Register REST API routes
 	 *
 	 * @since 0.1.2
@@ -97,6 +104,3 @@ class Providers {
 		}
 	}
 }
-
-// Register routes on WordPress REST API initialization
-add_action( 'rest_api_init', array( Providers::class, 'register_routes' ) );

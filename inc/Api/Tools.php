@@ -25,6 +25,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Tools {
 
 	/**
+	 * Register the API endpoint.
+	 */
+	public static function register() {
+		add_action( 'rest_api_init', array( self::class, 'register_routes' ) );
+	}
+
+	/**
 	 * Register REST API routes
 	 *
 	 * @since 0.1.2
@@ -63,6 +70,3 @@ class Tools {
 		);
 	}
 }
-
-// Register routes on WordPress REST API initialization
-add_action( 'rest_api_init', array( Tools::class, 'register_routes' ) );

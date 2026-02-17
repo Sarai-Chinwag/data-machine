@@ -29,6 +29,7 @@ import ChatInput from './ChatInput';
 import ChatSessionSwitcher from './ChatSessionSwitcher';
 import ChatSessionList from './ChatSessionList';
 import { formatChatAsMarkdown } from '../../utils/formatters';
+import ChatErrorBoundary from './ChatErrorBoundary';
 
 function generateRequestId() {
 	return crypto.randomUUID();
@@ -268,6 +269,7 @@ export default function ChatSidebar() {
 				/>
 			</header>
 
+			<ChatErrorBoundary>
 			{ view === 'chat' ? (
 				<>
 					<div className="datamachine-chat-sidebar__actions">
@@ -312,6 +314,7 @@ export default function ChatSidebar() {
 					onSessionDeleted={ handleSessionDeleted }
 				/>
 			) }
+			</ChatErrorBoundary>
 		</aside>
 	);
 }

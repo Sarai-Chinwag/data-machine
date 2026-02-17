@@ -114,4 +114,3 @@ class LocalSearch extends BaseTool {
 	}
 }
 
-new LocalSearch();

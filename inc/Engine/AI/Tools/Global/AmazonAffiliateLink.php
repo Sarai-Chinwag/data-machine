@@ -443,5 +443,3 @@ class AmazonAffiliateLink extends BaseTool {
 	}
 }
 
-// Self-register the tool.
-new AmazonAffiliateLink();

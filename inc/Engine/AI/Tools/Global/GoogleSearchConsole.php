@@ -241,5 +241,3 @@ class GoogleSearchConsole extends BaseTool {
 	}
 }
 
-// Self-register the tool.
-new GoogleSearchConsole();

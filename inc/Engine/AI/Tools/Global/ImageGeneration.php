@@ -253,5 +253,3 @@ class ImageGeneration extends BaseTool {
 	}
 }
 
-// Self-register the tool.
-new ImageGeneration();

@@ -205,5 +205,3 @@ class BingWebmaster extends BaseTool {
 	}
 }
 
-// Self-register the tool.
-new BingWebmaster();

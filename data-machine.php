@@ -86,8 +86,8 @@ function datamachine_run_datamachine_plugin() {
 	// Initialize FetchHandler to register skip_item tool for all fetch-type handlers
 	\DataMachine\Core\Steps\Fetch\Handlers\FetchHandler::init();
 
-	// Load chat tools - must happen AFTER step types and handlers are registered
-	datamachine_load_chat_tools();
+	// Register all tools - must happen AFTER step types and handlers are registered.
+	\DataMachine\Engine\AI\Tools\ToolServiceProvider::register();
 
 	\DataMachine\Api\Execute::register();
 	\DataMachine\Api\Pipelines\Pipelines::register();
@@ -220,43 +220,6 @@ function datamachine_load_handlers() {
 
 	// Update Handlers
 	new \DataMachine\Core\Steps\Update\Handlers\WordPress\WordPress();
-}
-
-/**
- * Load chat tools - must be called AFTER step types and handlers are registered.
- * These tools build their descriptions from registered step types and handlers.
- */
-function datamachine_load_chat_tools() {
-	new \DataMachine\Api\Chat\Tools\ApiQuery();
-	new \DataMachine\Api\Chat\Tools\CreatePipeline();
-	new \DataMachine\Api\Chat\Tools\AddPipelineStep();
-	new \DataMachine\Api\Chat\Tools\CreateFlow();
-	new \DataMachine\Api\Chat\Tools\ConfigureFlowSteps();
-	new \DataMachine\Api\Chat\Tools\RunFlow();
-	new \DataMachine\Api\Chat\Tools\UpdateFlow();
-	new \DataMachine\Api\Chat\Tools\ConfigurePipelineStep();
-	new \DataMachine\Api\Chat\Tools\ExecuteWorkflowTool();
-	new \DataMachine\Api\Chat\Tools\CopyFlow();
-	new \DataMachine\Api\Chat\Tools\AuthenticateHandler();
-	new \DataMachine\Api\Chat\Tools\ReadLogs();
-	new \DataMachine\Api\Chat\Tools\ManageLogs();
-	new \DataMachine\Api\Chat\Tools\CreateTaxonomyTerm();
-	new \DataMachine\Api\Chat\Tools\SearchTaxonomyTerms();
-	new \DataMachine\Api\Chat\Tools\UpdateTaxonomyTerm();
-	new \DataMachine\Api\Chat\Tools\MergeTaxonomyTerms();
-	new \DataMachine\Api\Chat\Tools\AssignTaxonomyTerm();
-	new \DataMachine\Api\Chat\Tools\GetHandlerDefaults();
-	new \DataMachine\Api\Chat\Tools\SetHandlerDefaults();
-	new \DataMachine\Api\Chat\Tools\DeleteFile();
-	new \DataMachine\Api\Chat\Tools\DeleteFlow();
-	new \DataMachine\Api\Chat\Tools\DeletePipeline();
-	new \DataMachine\Api\Chat\Tools\DeletePipelineStep();
-	new \DataMachine\Api\Chat\Tools\ReorderPipelineSteps();
-	new \DataMachine\Api\Chat\Tools\ListFlows();
-	new \DataMachine\Api\Chat\Tools\ManageQueue();
-	new \DataMachine\Api\Chat\Tools\ManageJobs();
-	new \DataMachine\Api\Chat\Tools\SendPing();
-	new \DataMachine\Api\Chat\Tools\SystemHealthCheck();
 }
 
 /**

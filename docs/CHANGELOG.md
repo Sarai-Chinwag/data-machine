@@ -2,7 +2,7 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
-## Unreleased
+## [0.25.0] - 2026-02-17
 
 ### Added
 - Bing Webmaster Tools analytics connector

@@ -2,6 +2,33 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## Unreleased
+
+### Added
+- Bing Webmaster Tools analytics connector
+- Webhook Gate step type — pause pipeline until external webhook fires
+- Google Search Console connector
+- Agent Soul structured identity directive
+- GitHub Issue creation tool for System Agent
+- Amazon Affiliate Link tool
+- Chat sidebar tools: ManageJobs, ManageQueue, SendPing, SystemHealthCheck
+- Image prompt refinement via DM AI engine
+
+### Changed
+- FlowStepCard schema-driven refactor (658 → 198 lines)
+- Settings tabs use useFormState + shared SettingsSaveBar
+- Scoped queue cache invalidation to specific pipeline
+- Flow reconciliation polling extracted to useFlowReconciliation hook
+- Modal callbacks moved from PipelinesApp into zero-prop ModalManager
+- Consolidated duplicate API client + queryClient into shared modules
+- Removed legacy PHP settings tabs, sanitize callback, and vanilla JS (-1,045 lines)
+
+### Fixed
+- WP-CLI settings set fatal when ability returns WP_Error
+- ImageGenerationTask undefined $params in handleSuccess()
+- Settings sanitization wiping cross-tab values
+- DATAMACHINE_VERSION constant synced with header
+
 ## [0.24.0] - 2026-02-16
 
 ### Added

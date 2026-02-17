@@ -55,6 +55,8 @@ export default function InlineStepConfig( {
 	const localValuesRef = useRef( localValues );
 
 	// Initialize local values from handler config.
+	// Depends on fieldEntries.length so values are set once the handler details schema loads
+	// (fixes race condition where handlerConfig arrives before the schema query resolves).
 	useEffect( () => {
 		if ( fieldEntries.length === 0 ) {
 			return;
@@ -66,7 +68,7 @@ export default function InlineStepConfig( {
 		} );
 		setLocalValues( initial );
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ handlerSlug, JSON.stringify( handlerConfig ) ] );
+	}, [ handlerSlug, fieldEntries.length, JSON.stringify( handlerConfig ) ] );
 
 	// Keep ref in sync.
 	useEffect( () => {

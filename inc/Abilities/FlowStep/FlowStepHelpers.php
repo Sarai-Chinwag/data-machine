@@ -58,12 +58,15 @@ trait FlowStepHelpers {
 		if ( ! empty( $slug ) ) {
 			$step_config['handler_slugs']  = array( $slug );
 			$step_config['handler_configs'] = array( $slug => $config );
+			unset( $step_config['handler_slug'], $step_config['handler_config'] );
 		} else {
 			$step_config['handler_slugs']  = array();
 			$step_config['handler_configs'] = array();
+			unset( $step_config['handler_slug'] );
+			// Preserve handler_config for non-handler step types (Agent Ping, Webhook Gate)
+			// that store settings directly in handler_config without a handler_slug.
 		}
 
-		unset( $step_config['handler_slug'], $step_config['handler_config'] );
 		return $step_config;
 	}
 

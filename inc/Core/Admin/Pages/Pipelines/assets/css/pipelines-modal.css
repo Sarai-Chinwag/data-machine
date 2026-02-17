@@ -965,6 +965,14 @@
     margin-top: 12px;
 }
 
+.datamachine-handler-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
 .datamachine-handler-badge {
     display: inline-block;
     padding: 4px 12px;
@@ -973,7 +981,32 @@
     border-radius: var(--datamachine-border-radius);
     font-size: 11px;
     font-weight: 500;
-    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.datamachine-handler-badge:hover {
+    opacity: 0.8;
+}
+
+.datamachine-handler-add-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px dashed #757575;
+    background: transparent;
+    color: #757575;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+}
+
+.datamachine-handler-add-badge:hover {
+    border-color: #007cba;
+    color: #007cba;
 }
 
 .datamachine-handler-settings-entry {

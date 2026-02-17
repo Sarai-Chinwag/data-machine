@@ -188,9 +188,13 @@ export default function FlowStepCard( {
 					{ usesHandler && (
 						<FlowStepHandler
 							handlerSlug={ flowStepConfig.handler_slug || null }
+							handlerSlugs={ flowStepConfig.handler_slugs || null }
 							settingsDisplay={ flowStepConfig.settings_display || [] }
-							onConfigure={ () =>
-								onConfigure && onConfigure( flowStepId )
+							onConfigure={ ( slug ) =>
+								onConfigure && onConfigure( flowStepId, slug )
+							}
+							onAddHandler={ () =>
+								onConfigure && onConfigure( flowStepId, null, true )
 							}
 							showConfigureButton
 							showBadge

@@ -279,6 +279,50 @@ export const updateFlowStepConfig = async ( flowStepId, config ) => {
 };
 
 /**
+ * Add a handler to a flow step (multi-handler mode).
+ *
+ * Uses the wp-abilities API to invoke the datamachine/update-flow-step ability.
+ *
+ * @param {string} flowStepId  - Flow step ID
+ * @param {string} handlerSlug - Handler slug to add
+ * @param {Object} settings    - Initial handler settings
+ * @return {Promise<Object>} Ability execution result
+ */
+export const addFlowHandler = async ( flowStepId, handlerSlug, settings = {} ) => {
+	const { default: apiFetch } = await import( '@wordpress/api-fetch' );
+	return await apiFetch( {
+		path: '/wp-abilities/v1/execute/datamachine/update-flow-step',
+		method: 'POST',
+		data: {
+			flow_step_id: flowStepId,
+			add_handler: handlerSlug,
+			add_handler_config: settings,
+		},
+	} );
+};
+
+/**
+ * Remove a handler from a flow step (multi-handler mode).
+ *
+ * Uses the wp-abilities API to invoke the datamachine/update-flow-step ability.
+ *
+ * @param {string} flowStepId  - Flow step ID
+ * @param {string} handlerSlug - Handler slug to remove
+ * @return {Promise<Object>} Ability execution result
+ */
+export const removeFlowHandler = async ( flowStepId, handlerSlug ) => {
+	const { default: apiFetch } = await import( '@wordpress/api-fetch' );
+	return await apiFetch( {
+		path: '/wp-abilities/v1/execute/datamachine/update-flow-step',
+		method: 'POST',
+		data: {
+			flow_step_id: flowStepId,
+			remove_handler: handlerSlug,
+		},
+	} );
+};
+
+/**
  * Update user message for AI step in flow
  *
  * @param {string} flowStepId - Flow step ID

@@ -39,18 +39,22 @@ import useHandlerModel from '../../hooks/useHandlerModel';
  * @param {Function} props.onOAuthConnect  - OAuth connect callback
  * @param {Object}   props.handlers        - Global handlers metadata from PipelineContext
  * @param {Object}   props.handlerDetails  - Detailed configuration for the selected handler
+ * @param {Array}    props.handlerSlugs    - All handler slugs on this step (multi-handler)
+ * @param {Function} props.onRemoveHandler - Remove handler callback (multi-handler)
  * @return {React.ReactElement|null} Handler settings modal
  */
 export default function HandlerSettingsModal( {
 	onClose,
 	flowStepId,
 	handlerSlug,
+	handlerSlugs,
 	stepType,
 	pipelineId,
 	flowId,
 	currentSettings,
 	onSuccess,
 	onChangeHandler,
+	onRemoveHandler,
 	onOAuthConnect,
 	handlers,
 	handlerDetails,
@@ -231,6 +235,16 @@ export default function HandlerSettingsModal( {
 						>
 							{ __( 'Change Handler', 'data-machine' ) }
 						</Button>
+						{ handlerSlugs?.length > 1 && onRemoveHandler && (
+							<Button
+								variant="secondary"
+								size="small"
+								isDestructive
+								onClick={ () => onRemoveHandler( handlerSlug ) }
+							>
+								{ __( 'Remove Handler', 'data-machine' ) }
+							</Button>
+						) }
 					</div>
 
 					{ handlerInfo.requires_auth && (

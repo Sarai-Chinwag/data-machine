@@ -19,6 +19,8 @@ import {
 	duplicateFlow,
 	runFlow,
 	updateFlowHandler,
+	addFlowHandler,
+	removeFlowHandler,
 	updateUserMessage,
 	updateFlowSchedule,
 } from '../utils/api';
@@ -381,6 +383,51 @@ export const useUpdateUserMessage = () => {
 						queryClient.setQueryData( queryKey, data );
 					}
 				);
+			}
+		},
+	} );
+};
+
+export const useAddFlowHandler = () => {
+	const queryClient = useQueryClient();
+	return useMutation( {
+		mutationFn: ( { flowStepId, handlerSlug, settings = {} } ) =>
+			addFlowHandler( flowStepId, handlerSlug, settings ),
+		onSuccess: ( response, variables ) => {
+			// Invalidate flows to pick up updated handler_slugs / handler_configs.
+			if ( variables.pipelineId ) {
+				const cachedPipelineId = normalizeId( variables.pipelineId );
+				queryClient.invalidateQueries( {
+					queryKey: [ 'flows', cachedPipelineId ],
+				} );
+			}
+			if ( variables.flowId ) {
+				const cachedFlowId = normalizeId( variables.flowId );
+				queryClient.invalidateQueries( {
+					queryKey: [ 'flows', 'single', cachedFlowId ],
+				} );
+			}
+		},
+	} );
+};
+
+export const useRemoveFlowHandler = () => {
+	const queryClient = useQueryClient();
+	return useMutation( {
+		mutationFn: ( { flowStepId, handlerSlug } ) =>
+			removeFlowHandler( flowStepId, handlerSlug ),
+		onSuccess: ( response, variables ) => {
+			if ( variables.pipelineId ) {
+				const cachedPipelineId = normalizeId( variables.pipelineId );
+				queryClient.invalidateQueries( {
+					queryKey: [ 'flows', cachedPipelineId ],
+				} );
+			}
+			if ( variables.flowId ) {
+				const cachedFlowId = normalizeId( variables.flowId );
+				queryClient.invalidateQueries( {
+					queryKey: [ 'flows', 'single', cachedFlowId ],
+				} );
 			}
 		},
 	} );

@@ -1,5 +1,8 @@
 /**
  * Flow step handler component.
+ *
+ * Supports displaying multiple handler badges when a step has more than one
+ * handler assigned (multi-handler mode).
  */
 
 /**
@@ -15,15 +18,20 @@ import { useStepTypes } from '../../queries/config';
 
 export default function FlowStepHandler( {
 	handlerSlug,
+	handlerSlugs,
 	settingsDisplay,
 	onConfigure,
+	onAddHandler,
 	showConfigureButton = true,
 	showBadge = true,
 } ) {
 	const { data: handlers = {} } = useHandlers();
 	const { data: stepTypes = {} } = useStepTypes();
 
-	if ( ! handlerSlug ) {
+	// Resolve to array — prefer handlerSlugs, fall back to single handlerSlug.
+	const slugs = handlerSlugs || ( handlerSlug ? [ handlerSlug ] : [] );
+
+	if ( slugs.length === 0 ) {
 		return (
 			<div className="datamachine-flow-step-handler datamachine-flow-step-handler--empty datamachine-handler-warning">
 				<p className="datamachine-handler-warning-text">
@@ -32,7 +40,7 @@ export default function FlowStepHandler( {
 				<Button
 					variant="secondary"
 					size="small"
-					onClick={ onConfigure }
+					onClick={ () => onConfigure && onConfigure( null ) }
 				>
 					{ __( 'Configure Handler', 'data-machine' ) }
 				</Button>
@@ -52,17 +60,45 @@ export default function FlowStepHandler( {
 
 	const hasSettings = Object.keys( displaySettings ).length > 0;
 
-	// Look up label from handlers first, then step types, then fall back to slug
-	const handlerLabel =
-		handlers[ handlerSlug ]?.label ||
-		stepTypes[ handlerSlug ]?.label ||
-		handlerSlug;
+	/**
+	 * Resolve a handler label from handlers registry, step types, or slug.
+	 *
+	 * @param {string} slug Handler slug.
+	 * @return {string} Display label.
+	 */
+	const getLabel = ( slug ) =>
+		handlers[ slug ]?.label || stepTypes[ slug ]?.label || slug;
 
 	return (
 		<div className="datamachine-flow-step-handler datamachine-handler-container">
 			{ showBadge && (
-				<div className="datamachine-handler-tag datamachine-handler-badge">
-					{ handlerLabel }
+				<div className="datamachine-handler-badges">
+					{ slugs.map( ( slug ) => (
+						<div
+							key={ slug }
+							className="datamachine-handler-tag datamachine-handler-badge"
+							onClick={ () => onConfigure && onConfigure( slug ) }
+							role="button"
+							tabIndex={ 0 }
+							onKeyDown={ ( e ) => {
+								if ( e.key === 'Enter' || e.key === ' ' ) {
+									onConfigure && onConfigure( slug );
+								}
+							} }
+						>
+							{ getLabel( slug ) }
+						</div>
+					) ) }
+					{ onAddHandler && (
+						<button
+							type="button"
+							className="datamachine-handler-add-badge"
+							onClick={ onAddHandler }
+							title={ __( 'Add another handler', 'data-machine' ) }
+						>
+							+
+						</button>
+					) }
 				</div>
 			) }
 
@@ -86,7 +122,7 @@ export default function FlowStepHandler( {
 				<Button
 					variant="secondary"
 					size="small"
-					onClick={ onConfigure }
+					onClick={ () => onConfigure && onConfigure( slugs[ 0 ] ) }
 				>
 					{ __( 'Configure', 'data-machine' ) }
 				</Button>

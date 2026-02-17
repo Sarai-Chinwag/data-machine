@@ -206,10 +206,14 @@ function FlowCardContent( props ) {
 	);
 
 	/**
-	 * Handle step configuration
+	 * Handle step configuration.
+	 *
+	 * @param {string}      flowStepId      Flow step ID.
+	 * @param {string|null} specificHandler  Handler slug to configure, or null.
+	 * @param {boolean}     addMode         When true, opens selection modal to add another handler.
 	 */
 	const handleStepConfigured = useCallback(
-		( flowStepId ) => {
+		( flowStepId, specificHandler = null, addMode = false ) => {
 			const flowStepConfig =
 				currentFlowData.flow_config?.[ flowStepId ] || {};
 			const pipelineStepId = flowStepConfig.pipeline_step_id;
@@ -217,26 +221,39 @@ function FlowCardContent( props ) {
 				isSameId( s.pipeline_step_id, pipelineStepId )
 			);
 
+			const handlerSlugs = flowStepConfig.handler_slugs ||
+				( flowStepConfig.handler_slug ? [ flowStepConfig.handler_slug ] : [] );
+
 			// Build data for handler modals
 			const data = {
 				flowStepId,
-				handlerSlug: flowStepConfig.handler_slug || '',
+				handlerSlug: specificHandler || flowStepConfig.handler_slug || '',
+				handlerSlugs,
 				stepType: pipelineStep?.step_type || flowStepConfig.step_type,
 				pipelineId: currentFlowData.pipeline_id,
 				flowId: currentFlowData.flow_id,
-				currentSettings: flowStepConfig.handler_config || {},
+				currentSettings: specificHandler
+					? ( flowStepConfig.handler_configs?.[ specificHandler ] || flowStepConfig.handler_config || {} )
+					: ( flowStepConfig.handler_config || {} ),
+				addMode,
 			};
 
-			// If no handler selected, open handler selection modal first
-			if ( ! flowStepConfig.handler_slug ) {
+			if ( addMode || ! flowStepConfig.handler_slug ) {
+				// Adding a new handler or no handler yet — open selection modal.
 				openModal( MODAL_TYPES.HANDLER_SELECTION, {
-					stepType: data.stepType,
-					flowStepId: data.flowStepId,
-					pipelineId: data.pipelineId,
-					flowId: data.flowId,
+					...data,
+					addMode: true,
+				} );
+			} else if ( specificHandler ) {
+				// Configuring a specific existing handler.
+				openModal( MODAL_TYPES.HANDLER_SETTINGS, {
+					...data,
+					handlerSlug: specificHandler,
+					currentSettings: flowStepConfig.handler_configs?.[ specificHandler ]
+						|| flowStepConfig.handler_config || {},
 				} );
 			} else {
-				// If handler already selected, open settings modal directly
+				// Default: open settings for primary handler.
 				openModal( MODAL_TYPES.HANDLER_SETTINGS, data );
 			}
 		},

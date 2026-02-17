@@ -96,6 +96,11 @@ class ImageGenerationAbilities {
 								'type'        => 'integer',
 								'description' => 'Pipeline job ID for featured image assignment after publish.',
 							],
+							'post_id'         => [
+								'type'        => 'integer',
+								'description' => 'Post ID to set the generated image as featured image (for standalone/direct calls).',
+							],
+
 							'post_context'    => [
 								'type'        => 'string',
 								'description' => 'Optional post content/excerpt for context-aware prompt refinement.',
@@ -213,6 +218,9 @@ class ImageGenerationAbilities {
 		$context = [];
 		if ( ! empty( $input['pipeline_job_id'] ) ) {
 			$context['pipeline_job_id'] = (int) $input['pipeline_job_id'];
+		}
+		if ( ! empty( $input['post_id'] ) ) {
+			$context['post_id'] = (int) $input['post_id'];
 		}
 
 		$systemAgent = SystemAgent::getInstance();

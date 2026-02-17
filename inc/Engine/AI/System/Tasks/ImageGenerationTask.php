@@ -224,19 +224,23 @@ class ImageGenerationTask extends SystemTask {
 	protected function trySetFeaturedImage( int $jobId, int $attachmentId, array $params ): void {
 		$context         = $params['context'] ?? [];
 		$pipeline_job_id = $context['pipeline_job_id'] ?? 0;
+		$direct_post_id  = $context['post_id'] ?? 0;
 
-		if ( empty( $pipeline_job_id ) ) {
-			// No pipeline context — this was a chat or standalone request
-			return;
-		}
+		// Direct post_id takes priority (standalone/direct ability calls)
+		if ( ! empty( $direct_post_id ) ) {
+			$post_id = (int) $direct_post_id;
+		} elseif ( ! empty( $pipeline_job_id ) ) {
+			// Read the pipeline job's engine data to find the published post_id
+			$pipeline_engine_data = datamachine_get_engine_data( (int) $pipeline_job_id );
+			$post_id              = $pipeline_engine_data['post_id'] ?? 0;
 
-		// Read the pipeline job's engine data to find the published post_id
-		$pipeline_engine_data = datamachine_get_engine_data( (int) $pipeline_job_id );
-		$post_id              = $pipeline_engine_data['post_id'] ?? 0;
-
-		if ( empty( $post_id ) ) {
-			// Post hasn't been published yet — schedule a deferred attempt
-			$this->scheduleFeaturedImageRetry( $attachmentId, $pipeline_job_id );
+			if ( empty( $post_id ) ) {
+				// Post hasn’t been published yet — schedule a deferred attempt
+				$this->scheduleFeaturedImageRetry( $attachmentId, $pipeline_job_id );
+				return;
+			}
+		} else {
+			// No pipeline context and no direct post_id — nothing to do
 			return;
 		}
 

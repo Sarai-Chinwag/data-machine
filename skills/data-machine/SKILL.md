@@ -59,6 +59,7 @@ Pipeline (template) → Flow (instance) → Job (execution)
 | `publish` | Output (WordPress, Twitter, Discord) | No |
 | `update` | Modify existing content | No |
 | `agent_ping` | Webhook to external agents | **Yes** |
+| `webhook_gate` | Pause until external webhook fires | No |
 
 ### Scheduling Options
 
@@ -70,6 +71,52 @@ Configure via `scheduling_config` in the flow:
 | `daily` | Runs once per day |
 | `hourly` | Runs once per hour |
 | `{"cron": "0 9 * * 1"}` | Cron expression (e.g., Mondays at 9am) |
+
+### Publish Handlers
+
+| Handler | Platform |
+|---------|----------|
+| `wordpress` | WordPress posts |
+| `twitter` | Twitter/X |
+| `discord` | Discord webhooks |
+| `threads` | Threads |
+| `bluesky` | Bluesky |
+| `facebook` | Facebook |
+| `pinterest` | Pinterest |
+| `google_sheets` | Google Sheets |
+
+#### Multi-Handler Publish Steps
+
+A publish step can target multiple handlers simultaneously. Configure `handler_slugs` as an array in the flow step config instead of a single `handler_slug`. The step finds and processes results for each configured handler.
+
+### Webhook Gate Step
+
+The `webhook_gate` step type pauses a pipeline until an external system sends a webhook. It is handler-free — no handler config needed.
+
+**How it works:**
+1. Step generates a unique webhook URL and parks the job in a "waiting" state
+2. The external system POSTs to the webhook URL when ready
+3. The pipeline resumes from the next step with the webhook payload injected as data packets
+
+**Configuration:**
+- `timeout_hours` — How long to wait before failing (0 = no timeout, defaults to 7-day token expiry)
+- `description` — Human-readable note about what the gate is waiting for
+
+### Image Generation Modes
+
+Image generation supports two modes via the `mode` parameter:
+- `featured` (default) — Sets the generated image as the post's featured image
+- `insert` — Inserts an image block directly into the post content
+
+In `insert` mode, the `position` parameter controls placement: `after_intro` (default), `before_heading`, `end`, or `index:N`.
+
+### Per-Agent Model Configuration
+
+The `agent_models` setting allows different AI providers and models per agent type (e.g., pipeline vs chat vs system). Configure via Settings in the admin UI or via CLI:
+
+```bash
+wp datamachine settings get agent_models
+```
 
 ---
 
@@ -118,6 +165,12 @@ wp datamachine flows queue list <flow_id>
 
 # Clear queue
 wp datamachine flows queue clear <flow_id>
+
+# Update a queued prompt by index
+wp datamachine flows queue update <flow_id> <index> "Updated prompt text"
+
+# Move a prompt from one position to another
+wp datamachine flows queue move <flow_id> <from_index> <to_index>
 ```
 
 ### Chaining Pattern
@@ -257,6 +310,8 @@ wp datamachine flows run <flow_id>
 wp datamachine flows queue add <flow_id> "prompt"
 wp datamachine flows queue list <flow_id>
 wp datamachine flows queue clear <flow_id>
+wp datamachine flows queue update <flow_id> <index> "new prompt"
+wp datamachine flows queue move <flow_id> <from_index> <to_index>
 
 # Jobs
 wp datamachine jobs list [--status=<status>] [--limit=<n>]
@@ -330,7 +385,7 @@ Flow runs daily, pops next phase, agent executes and queues follow-up if needed.
 
 For contributors working on Data Machine itself:
 
-- Steps: `inc/Core/Steps/`
+- Steps: `inc/Core/Steps/` (AI, Fetch, Publish, Update, AgentPing, WebhookGate)
 - Abilities: `inc/Abilities/`
 - CLI: `inc/Cli/`
 - Taxonomy Handler: `inc/Core/WordPress/TaxonomyHandler.php`

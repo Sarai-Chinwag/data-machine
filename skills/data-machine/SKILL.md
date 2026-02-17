@@ -56,9 +56,10 @@ Pipeline (template) → Flow (instance) → Job (execution)
 |------|---------|-----------|
 | `fetch` | Import data (RSS, Sheets, Files, Reddit) | No |
 | `ai` | Process with AI (multi-turn, tools) | **Yes** |
-| `publish` | Output (WordPress, Twitter, Discord) | No |
+| `publish` | Output to platforms (single or multi-handler) | No |
 | `update` | Modify existing content | No |
 | `agent_ping` | Webhook to external agents | **Yes** |
+| `webhook_gate` | Pause pipeline until external webhook fires | No |
 
 ### Scheduling Options
 
@@ -238,6 +239,77 @@ local_search(query="topic name", title_only=true)
 
 ---
 
+## Webhook Gate Steps
+
+*Since v0.25.0.* The `webhook_gate` step type pauses a pipeline until an external webhook fires. It is handler-free — no `handler_config` or `handler_slug` needed.
+
+When the step executes:
+1. A unique webhook URL is generated and stored as a transient
+2. The job is parked in `waiting` status
+3. When the webhook URL receives a POST, the pipeline resumes from the next step with the webhook payload injected as data packets
+4. If the webhook is not received before the configured timeout, the job fails with `webhook_gate_timeout`
+
+Use this for integrations where an external system must complete work before the pipeline continues (e.g., waiting for a third-party approval or processing result).
+
+---
+
+## Multi-Handler Publish Steps
+
+Publish steps support multiple handlers in a single step via `handler_slugs` (array) and `handler_configs` (keyed by slug). This enables publishing to multiple platforms in one step — for example, WordPress and Twitter simultaneously.
+
+Configuration uses the `handler_slugs` array format:
+- `handler_slugs`: Array of handler slugs to execute (e.g., `["wordpress", "twitter"]`)
+- `handler_configs`: Per-handler configuration keyed by slug
+
+Falls back to singular `handler_slug` / `handler_config` for backward compatibility.
+
+### Available Publish Handlers
+
+| Handler | Platform |
+|---------|----------|
+| `wordpress` | WordPress posts |
+| `twitter` | Twitter/X |
+| `bluesky` | Bluesky |
+| `facebook` | Facebook |
+| `threads` | Threads |
+| `pinterest` | Pinterest |
+| `google_sheets` | Google Sheets |
+
+---
+
+## Per-Agent Model Configuration
+
+Each agent type (`chat`, `pipeline`, `system`) can use a different AI provider and model. Configure via the `agent_models` setting in the admin UI (Agent tab).
+
+Resolution order for a given agent type:
+1. Agent-specific override from `agent_models`
+2. Global `default_provider` / `default_model`
+3. Empty (no model configured)
+
+This is resolved via `PluginSettings::getAgentModel( $agent_type )`.
+
+---
+
+## Image Insert Modes
+
+When generating images for posts, the `mode` parameter controls placement:
+
+| Mode | Behavior |
+|------|----------|
+| `featured` | Set as the post's featured image (default) |
+| `insert` | Insert an image block directly into post content |
+
+When using `insert` mode, the `position` parameter controls where the image is placed:
+
+| Position | Behavior |
+|----------|----------|
+| `after_intro` | After the introductory paragraph (default) |
+| `before_heading` | Before the next heading element |
+| `end` | At the end of the content |
+| `index:N` | At a specific block index |
+
+---
+
 ## CLI Reference
 
 **Note:** If running WP-CLI as root, add `--allow-root` to commands.
@@ -257,6 +329,9 @@ wp datamachine flows run <flow_id>
 wp datamachine flows queue add <flow_id> "prompt"
 wp datamachine flows queue list <flow_id>
 wp datamachine flows queue clear <flow_id>
+wp datamachine flows queue remove <flow_id> <index>
+wp datamachine flows queue update <flow_id> <index> "new prompt text"
+wp datamachine flows queue move <flow_id> <from_index> <to_index>
 
 # Jobs
 wp datamachine jobs list [--status=<status>] [--limit=<n>]

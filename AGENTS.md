@@ -2,9 +2,51 @@
 
 Data Machine — WordPress plugin for automating content workflows with AI. Visual pipeline builder, chat agent, REST API, and extensibility via handlers and tools.
 
-Version: 0.13.6
+This file provides a concise, present-tense technical reference for contributors and automated agents. For user-focused docs see `docs/`. For the agent skill (how to *use* Data Machine), see `skills/data-machine/SKILL.md`.
 
-This file provides a concise, present-tense technical reference for contributors and automated agents. For user-focused docs see datamachine/docs/.
+## Build system
+
+- **Homeboy** is used for all build operations (versioning, packaging, deployment)
+- Homeboy provides full WordPress test environment for running tests (no local WordPress setup required)
+- Build command: `homeboy build data-machine` — runs tests, lints code, builds frontend, creates production ZIP
+- Test command: `homeboy test data-machine` — runs PHPUnit tests using homeboy's WordPress environment
+- Lint command: `homeboy lint data-machine` — runs PHP CodeSniffer with WordPress coding standards
+- Auto-fix: `homeboy lint data-machine --fix` — runs PHPCBF to auto-fix formatting issues
+
+## Testing
+
+- PHPUnit tests located in `tests/Unit/` directory
+- Tests use `WP_UnitTestCase` with homeboy's WordPress test environment
+- Ability registration tests in `tests/Unit/Abilities/`
+- Run tests: `homeboy test data-machine`
+- Run build: `homeboy build data-machine` (tests + lint + frontend + ZIP)
+
+## Abilities API
+
+- WordPress 6.9 Abilities API provides standardized capability discovery and execution for all Data Machine operations
+- Abilities are organized across classes in `inc/Abilities/`:
+  - `Pipeline/` — Pipeline CRUD, import/export, duplication
+  - `PipelineStepAbilities` — Pipeline step management
+  - `Flow/` — Flow CRUD, duplication, queue management
+  - `FlowStep/` — Flow step configuration and validation
+  - `Job/` — Workflow execution, job management, health monitoring, problem flow detection, recovery
+  - `FileAbilities` — File management and uploads
+  - `ProcessedItemsAbilities` — Deduplication tracking
+  - `SettingsAbilities` — Plugin and handler settings (includes `agent_models` for per-agent model configuration)
+  - `AuthAbilities` — OAuth authentication management
+  - `LogAbilities` — Logging operations (write, clear, read, metadata, level management)
+  - `HandlerAbilities` — Handler discovery and configuration
+  - `StepTypeAbilities` — Step type discovery and validation
+  - `PostQueryAbilities` — Querying Data Machine-created posts
+  - `LocalSearchAbilities` — WordPress site search
+  - `Media/` — Image generation (with insert mode support), alt text
+  - `Taxonomy/` — Taxonomy term CRUD and resolution
+  - `Analytics/` — Google Search Console, Bing Webmaster
+  - `SystemAbilities` — System-level operations
+  - `AgentPing/` — Agent ping dispatch
+- Category registration: `datamachine` category registered via `wp_register_ability_category()` on `wp_abilities_api_categories_init` hook
+- Ability execution: Each ability implements `execute_callback` with `permission_callback` (checks `manage_options` or WP_CLI)
+- REST API endpoints, CLI commands, and Chat tools delegate to abilities for business logic
 
 Build system
 
@@ -123,6 +165,7 @@ Design principles
 
 Where to find more
 
-- User docs: data-machine/docs/
-- Code: data-machine/inc/
-- Admin UI source: data-machine/inc/Core/Admin/Pages/
+- Agent skill: `skills/data-machine/SKILL.md`
+- User docs: `docs/`
+- Code: `inc/`
+- Admin UI source: `inc/Core/Admin/Pages/`

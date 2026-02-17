@@ -2,6 +2,36 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## Unreleased
+
+### Added
+- ChatErrorBoundary wraps chat sidebar with retry UI
+- BaseRepository abstract class for database CRUD patterns
+
+### Changed
+- ToolServiceProvider centralizes all 39 tool registrations — removed self-instantiation from global tools
+- Bootstrap consolidated: 48 require_once lines → single inc/bootstrap.php
+- EngineData consolidated: static retrieve/persist/merge methods + forJob() factory, procedural wrappers kept for compat
+- BaseRepository extracted: shared constructor, find_by_id, delete_by_id, count_rows, log_db_error — 6 repos migrated
+- Chat messages use TanStack Query cache as single source of truth (fixes dual-state race conditions)
+- Chat backend: executeConversationTurn() helper eliminates 3-way duplication across handle_chat/continue/ping
+- Request ID transient set before AI loop to prevent duplicate sessions on retry
+- Consolidated duplicate tool resolution — ToolExecutor delegates to ToolManager
+- Action closures extracted to dedicated Handler classes (FailJob, JobComplete, Log, LogManage, MarkItemProcessed)
+- datamachine_log split into write-only (LogHandler) + management (LogManageHandler via datamachine_log_manage)
+- Chat session dropdown replaced with @wordpress/components Dropdown
+- Chat sidebar CSS split into 5 component-aligned files with @import entry point
+
+### Removed
+- Legacy PHP settings tabs, sanitize callback, and vanilla JS (dead code, -1,045 lines)
+- Dead function datamachine_get_enabled_global_tools() (used wrong filter)
+- No-op identity filter registrations in Admin, DataMachineFilters, Handlers
+- Self-instantiation from all Global tool files
+
+### Fixed
+- Settings sanitization wiping cross-tab values (seeded from existing values + isset guards)
+- Chat message duplication and missing responses (#4/#5) via single source of truth + transient timing fix
+
 ## [0.25.0] - 2026-02-17
 
 ### Added

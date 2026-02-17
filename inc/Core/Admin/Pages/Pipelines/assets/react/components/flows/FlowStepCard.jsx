@@ -149,12 +149,11 @@ export default function FlowStepCard( {
 						</div>
 					) }
 
-					{ /* Inline Config Fields (schema-driven from handler details API).
-					   Renders for any step type with registered fields — the component
-					   self-determines whether to render based on API response (returns
-					   null when no fields exist). Not gated by show_settings_display,
-					   which controls the PHP-side read-only summary, not the React editor. */ }
-					{ effectiveHandlerSlug && (
+					{ /* Inline Config Fields — flow step settings for non-handler step types only.
+					   Handler-based steps show their settings in the configuration modal,
+					   not inline on the card. Non-handler step types (Agent Ping, Webhook Gate)
+					   render their fields here via the handler details API fallback. */ }
+					{ ! usesHandler && effectiveHandlerSlug && (
 						<InlineStepConfig
 							flowStepId={ flowStepId }
 							handlerConfig={ flowStepConfig?.handler_config || {} }

@@ -1,5 +1,5 @@
 # CLAUDE.md
 
-See [AGENTS.md](AGENTS.md) for all project documentation.
+See **AGENTS.md** for contributor and agent guidance.
 
-This file exists for backwards compatibility with tools that look for CLAUDE.md.
+This file exists for compatibility with tools that look for `CLAUDE.md` by convention.

@@ -135,7 +135,7 @@ class ToolManager {
 	 * @param array $tools Raw tools array (may contain callables)
 	 * @return array Resolved tools array
 	 */
-	private function resolveAllTools( array $tools ): array {
+	public function resolveAllTools( array $tools ): array {
 		$resolved = array();
 		foreach ( $tools as $tool_id => $definition ) {
 			$resolved[ $tool_id ] = $this->resolveToolDefinition( $tool_id, $definition );

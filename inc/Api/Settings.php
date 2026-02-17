@@ -135,6 +135,16 @@ class Settings {
 
 		register_rest_route(
 			'datamachine/v1',
+			'/settings/generate-ping-secret',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( self::class, 'handle_generate_ping_secret' ),
+				'permission_callback' => array( self::class, 'check_permission' ),
+			)
+		);
+
+		register_rest_route(
+			'datamachine/v1',
 			'/settings/handler-defaults/(?P<handler_slug>[a-zA-Z0-9_-]+)',
 			array(
 				'methods'             => 'PUT',
@@ -153,6 +163,31 @@ class Settings {
 						'description' => __( 'Default configuration values', 'data-machine' ),
 					),
 				),
+			)
+		);
+	}
+
+	/**
+	 * Handle chat ping secret generation/regeneration.
+	 *
+	 * @since 0.24.0
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return \WP_REST_Response|\WP_Error Response with new secret.
+	 */
+	public static function handle_generate_ping_secret( $request ) {
+		$secret   = wp_generate_password( 32, false );
+		$settings = get_option( 'datamachine_settings', array() );
+
+		$settings['chat_ping_secret'] = $secret;
+		update_option( 'datamachine_settings', $settings );
+
+		\DataMachine\Core\PluginSettings::clearCache();
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'secret'  => $secret,
 			)
 		);
 	}

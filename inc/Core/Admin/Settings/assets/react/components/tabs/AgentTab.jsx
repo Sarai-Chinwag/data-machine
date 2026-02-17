@@ -8,13 +8,17 @@
 /**
  * WordPress dependencies
  */
-import { useState, useEffect } from '@wordpress/element';
+import { useState, useEffect, useCallback } from '@wordpress/element';
 import { Button } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import { useSettings, useUpdateSettings } from '../../queries/settings';
+import {
+	useSettings,
+	useUpdateSettings,
+} from '../../queries/settings';
+import { client } from '@shared/utils/api';
 import ToolConfigModal from '../ToolConfigModal';
 import { useFormState } from '@shared/hooks/useFormState';
 import SettingsSaveBar, {
@@ -39,6 +43,10 @@ const AgentTab = () => {
 	const { data, isLoading, error } = useSettings();
 	const updateMutation = useUpdateSettings();
 	const [ openToolId, setOpenToolId ] = useState( null );
+	const [ pingSecret, setPingSecret ] = useState( '' );
+	const [ pingSecretVisible, setPingSecretVisible ] = useState( false );
+	const [ pingCopied, setPingCopied ] = useState( false );
+	const [ pingGenerating, setPingGenerating ] = useState( false );
 
 	const form = useFormState( {
 		initialData: DEFAULTS,
@@ -48,6 +56,48 @@ const AgentTab = () => {
 	const save = useSaveStatus( {
 		onSave: () => form.submit(),
 	} );
+
+	// Sync ping secret from server data.
+	useEffect( () => {
+		if ( data?.settings?.chat_ping_secret ) {
+			setPingSecret( data.settings.chat_ping_secret );
+		}
+	}, [ data ] );
+
+	const handleGeneratePingSecret = useCallback( async () => {
+		const confirmed = pingSecret
+			? window.confirm(
+					'Regenerating will invalidate the current token. Any services using it will lose access. Continue?'
+			  )
+			: true;
+
+		if ( ! confirmed ) {
+			return;
+		}
+
+		setPingGenerating( true );
+		try {
+			const response = await client.post(
+				'/settings/generate-ping-secret'
+			);
+			if ( response.success && response.secret ) {
+				setPingSecret( response.secret );
+				setPingSecretVisible( true );
+			}
+		} catch ( err ) {
+			// eslint-disable-next-line no-console
+			console.error( 'Failed to generate ping secret:', err );
+		} finally {
+			setPingGenerating( false );
+		}
+	}, [ pingSecret ] );
+
+	const handleCopyPingSecret = useCallback( () => {
+		navigator.clipboard.writeText( pingSecret ).then( () => {
+			setPingCopied( true );
+			setTimeout( () => setPingCopied( false ), 2000 );
+		} );
+	}, [ pingSecret ] );
 
 	// Sync server data → form state
 	useEffect( () => {
@@ -345,6 +395,102 @@ const AgentTab = () => {
 								AI agents (1-50). Applies to both pipeline and
 								chat conversations.
 							</p>
+						</td>
+					</tr>
+
+					<tr>
+						<th scope="row">Chat Agent Webhook</th>
+						<td>
+							<div className="datamachine-ping-secret-section">
+								<p className="description" style={ { marginTop: 0 } }>
+									Allow external services to send messages to
+									your chat agent via webhook. Use this
+									endpoint URL and secret token in Agent Ping
+									step configurations.
+								</p>
+
+								<div style={ { marginBottom: '12px' } }>
+									<strong>Endpoint URL:</strong>{ ' ' }
+									<code>
+										{ window.location.origin }
+										/wp-json/datamachine/v1/chat/ping
+									</code>
+								</div>
+
+								{ pingSecret ? (
+									<div
+										style={ {
+											display: 'flex',
+											alignItems: 'center',
+											gap: '8px',
+											marginBottom: '12px',
+										} }
+									>
+										<input
+											type={
+												pingSecretVisible
+													? 'text'
+													: 'password'
+											}
+											value={ pingSecret }
+											readOnly
+											className="regular-text"
+										/>
+										<Button
+											variant="secondary"
+											onClick={ () =>
+												setPingSecretVisible(
+													! pingSecretVisible
+												)
+											}
+										>
+											{ pingSecretVisible
+												? 'Hide'
+												: 'Show' }
+										</Button>
+										<Button
+											variant="secondary"
+											onClick={ handleCopyPingSecret }
+										>
+											{ pingCopied
+												? 'Copied!'
+												: 'Copy' }
+										</Button>
+									</div>
+								) : (
+									<p>
+										<em>
+											No secret configured. Generate one
+											to enable the webhook endpoint.
+										</em>
+									</p>
+								) }
+
+								<Button
+									variant={
+										pingSecret ? 'secondary' : 'primary'
+									}
+									onClick={ handleGeneratePingSecret }
+									isBusy={ pingGenerating }
+									disabled={ pingGenerating }
+								>
+									{ pingSecret
+										? 'Regenerate Secret'
+										: 'Generate Secret' }
+								</Button>
+
+								{ pingSecret && (
+									<p
+										className="description"
+										style={ { marginTop: '8px' } }
+									>
+										Send requests with header:{ ' ' }
+										<code>
+											Authorization: Bearer &lt;secret&gt;
+										</code>
+									</p>
+								) }
+							</div>
 						</td>
 					</tr>
 				</tbody>

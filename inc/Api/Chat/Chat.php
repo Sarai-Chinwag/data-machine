@@ -159,6 +159,35 @@ class Chat {
 
 		register_rest_route(
 			'datamachine/v1',
+			'/chat/ping',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( self::class, 'handle_ping' ),
+				'permission_callback' => array( self::class, 'verify_ping_token' ),
+				'args'                => array(
+					'message' => array(
+						'type'              => 'string',
+						'required'          => true,
+						'description'       => __( 'Message for the chat agent', 'data-machine' ),
+						'sanitize_callback' => 'sanitize_textarea_field',
+					),
+					'prompt'  => array(
+						'type'              => 'string',
+						'required'          => false,
+						'description'       => __( 'Optional system-level instructions for this ping', 'data-machine' ),
+						'sanitize_callback' => 'sanitize_textarea_field',
+					),
+					'context' => array(
+						'type'        => 'object',
+						'required'    => false,
+						'description' => __( 'Optional pipeline context (flow_id, pipeline_id, job_id, etc.)', 'data-machine' ),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			'datamachine/v1',
 			'/chat/sessions',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
@@ -191,6 +220,264 @@ class Chat {
 							return \DataMachine\Engine\AI\AgentType::isValid( $param );
 						},
 					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Verify bearer token for chat ping endpoint.
+	 *
+	 * @since 0.24.0
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return bool|WP_Error True if valid, WP_Error otherwise.
+	 */
+	public static function verify_ping_token( WP_REST_Request $request ) {
+		$secret = PluginSettings::get( 'chat_ping_secret', '' );
+
+		if ( empty( $secret ) ) {
+			return new WP_Error(
+				'ping_not_configured',
+				__( 'Chat ping secret not configured.', 'data-machine' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		$auth_header = $request->get_header( 'Authorization' );
+
+		if ( empty( $auth_header ) ) {
+			return new WP_Error(
+				'missing_authorization',
+				__( 'Authorization header required.', 'data-machine' ),
+				array( 'status' => 401 )
+			);
+		}
+
+		// Accept "Bearer <token>" format.
+		$token = $auth_header;
+		if ( str_starts_with( $auth_header, 'Bearer ' ) ) {
+			$token = substr( $auth_header, 7 );
+		}
+
+		if ( ! hash_equals( $secret, $token ) ) {
+			return new WP_Error(
+				'invalid_token',
+				__( 'Invalid authorization token.', 'data-machine' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Handle incoming chat ping from webhook.
+	 *
+	 * Creates a new chat session, runs the full AI conversation loop
+	 * (multi-turn), and returns the final response. Authentication is
+	 * via bearer token, not WordPress cookies.
+	 *
+	 * @since 0.24.0
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error Response data or error.
+	 */
+	public static function handle_ping( WP_REST_Request $request ) {
+		$message = sanitize_textarea_field( wp_unslash( $request->get_param( 'message' ) ) );
+		$prompt  = sanitize_textarea_field( wp_unslash( $request->get_param( 'prompt' ) ?? '' ) );
+		$context = $request->get_param( 'context' ) ?? array();
+
+		AgentContext::set( AgentType::CHAT );
+
+		$provider  = PluginSettings::get( 'default_provider', '' );
+		$model     = PluginSettings::get( 'default_model', '' );
+		$max_turns = PluginSettings::get( 'max_turns', 12 );
+
+		if ( empty( $provider ) || empty( $model ) ) {
+			AgentContext::clear();
+			return new WP_Error(
+				'provider_required',
+				__( 'Default AI provider and model must be configured.', 'data-machine' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		// Build the message with optional context.
+		$full_message = $message;
+		if ( ! empty( $prompt ) ) {
+			$full_message = $prompt . "\n\n" . $message;
+		}
+		if ( ! empty( $context ) ) {
+			$context_str   = wp_json_encode( $context, JSON_PRETTY_PRINT );
+			$full_message .= "\n\n**Pipeline Context:**\n```json\n" . $context_str . "\n```";
+		}
+
+		// Use admin user (ID 1) for session ownership since this is a system-level request.
+		$admin_users = get_users( array( 'role' => 'administrator', 'number' => 1, 'orderby' => 'ID', 'order' => 'ASC' ) );
+		$user_id     = ! empty( $admin_users ) ? $admin_users[0]->ID : 1;
+
+		$chat_db    = new ChatDatabase();
+		$session_id = $chat_db->create_session(
+			$user_id,
+			array(
+				'started_at'    => current_time( 'mysql', true ),
+				'message_count' => 0,
+				'source'        => 'ping',
+			),
+			AgentType::CHAT
+		);
+
+		if ( empty( $session_id ) ) {
+			AgentContext::clear();
+			return new WP_Error(
+				'session_creation_failed',
+				__( 'Failed to create chat session.', 'data-machine' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		$messages   = array();
+		$messages[] = ConversationManager::buildConversationMessage( 'user', $full_message, array( 'type' => 'text' ) );
+
+		// Persist user message.
+		$chat_db->update_session(
+			$session_id,
+			$messages,
+			array(
+				'status'        => 'processing',
+				'started_at'    => current_time( 'mysql', true ),
+				'message_count' => count( $messages ),
+			),
+			$provider,
+			$model
+		);
+
+		$tool_manager = new ToolManager();
+		$all_tools    = $tool_manager->getAvailableToolsForChat();
+
+		try {
+			// Run FULL multi-turn loop (not single_turn) so the response is complete.
+			$loop        = new AIConversationLoop();
+			$loop_result = $loop->execute(
+				$messages,
+				$all_tools,
+				$provider,
+				$model,
+				AgentType::CHAT,
+				array( 'session_id' => $session_id ),
+				$max_turns,
+				false // multi-turn: run to completion
+			);
+
+			if ( isset( $loop_result['error'] ) ) {
+				$chat_db->update_session(
+					$session_id,
+					$messages,
+					array(
+						'status'        => 'error',
+						'error_message' => $loop_result['error'],
+						'last_activity' => current_time( 'mysql', true ),
+						'message_count' => count( $messages ),
+					),
+					$provider,
+					$model
+				);
+
+				do_action(
+					'datamachine_log',
+					'error',
+					'Chat ping AI loop returned error',
+					array(
+						'session_id' => $session_id,
+						'error'      => $loop_result['error'],
+						'agent_type' => AgentType::CHAT,
+					)
+				);
+
+				AgentContext::clear();
+				return new WP_Error(
+					'ping_ai_error',
+					$loop_result['error'],
+					array( 'status' => 500 )
+				);
+			}
+		} catch ( \Throwable $e ) {
+			do_action(
+				'datamachine_log',
+				'error',
+				'Chat ping AI loop exception',
+				array(
+					'session_id' => $session_id,
+					'error'      => $e->getMessage(),
+					'agent_type' => AgentType::CHAT,
+				)
+			);
+
+			$chat_db->update_session(
+				$session_id,
+				$messages,
+				array(
+					'status'        => 'error',
+					'error_message' => $e->getMessage(),
+					'last_activity' => current_time( 'mysql', true ),
+					'message_count' => count( $messages ),
+				),
+				$provider,
+				$model
+			);
+
+			AgentContext::clear();
+			return new WP_Error(
+				'ping_error',
+				$e->getMessage(),
+				array( 'status' => 500 )
+			);
+		} finally {
+			AgentContext::clear();
+		}
+
+		$messages      = $loop_result['messages'];
+		$final_content = $loop_result['final_content'];
+
+		$chat_db->update_session(
+			$session_id,
+			$messages,
+			array(
+				'status'        => 'completed',
+				'last_activity' => current_time( 'mysql', true ),
+				'message_count' => count( $messages ),
+				'source'        => 'ping',
+			),
+			$provider,
+			$model
+		);
+
+		// Generate title.
+		$ability = function_exists( 'wp_get_ability' ) ? wp_get_ability( 'datamachine/generate-session-title' ) : null;
+		if ( $ability ) {
+			$ability->execute( array( 'session_id' => $session_id ) );
+		}
+
+		do_action(
+			'datamachine_log',
+			'info',
+			'Chat ping completed',
+			array(
+				'session_id'  => $session_id,
+				'turns'       => $loop_result['turn_count'] ?? 1,
+				'agent_type'  => AgentType::CHAT,
+			)
+		);
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'data'    => array(
+					'session_id' => $session_id,
+					'response'   => $final_content,
+					'turns'      => $loop_result['turn_count'] ?? 1,
+					'completed'  => true,
 				),
 			)
 		);

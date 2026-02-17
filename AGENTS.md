@@ -6,6 +6,30 @@ Version: 0.13.6
 
 This file provides a concise, present-tense technical reference for contributors and automated agents. For user-focused docs see datamachine/docs/.
 
+Build system
+
+- **Homeboy** is used for all build operations (versioning, packaging, deployment)
+- Homeboy provides full WordPress test environment for running tests (no local WordPress setup required)
+- Build command: `homeboy build data-machine` - runs tests, lints code, builds frontend, creates production ZIP
+- Test command: `homeboy test data-machine` - runs PHPUnit tests using homeboy's WordPress environment
+- Lint command: `homeboy lint data-machine` - runs PHP CodeSniffer with WordPress coding standards
+- Auto-fix: `homeboy lint data-machine --fix` - runs PHPCBF to auto-fix formatting issues before validating
+
+Testing
+
+- PHPUnit tests located in `tests/Unit/` directory
+- Tests use `WP_UnitTestCase` with homeboy's WordPress test environment
+- Run tests: `homeboy test data-machine` (uses homeboy's WordPress installation)
+- Run build: `homeboy build data-machine` (runs tests, lints code, builds frontend assets, creates production ZIP)
+
+Abilities API
+
+- WordPress 6.9 Abilities API provides standardized capability discovery and execution for all Data Machine operations
+- Ability classes in `inc/Abilities/`: PipelineAbilities, PipelineStepAbilities, FlowAbilities, FlowStepAbilities, JobAbilities, FileAbilities, ProcessedItemsAbilities, SettingsAbilities, AuthAbilities, LogAbilities, HandlerAbilities, StepTypeAbilities, PostQueryAbilities, LocalSearchAbilities
+- Category registration: `datamachine` category registered via `wp_register_ability_category()` on `wp_abilities_api_categories_init` hook
+- Ability execution: Each ability implements `execute_callback` with `permission_callback` (checks `manage_options` or WP_CLI)
+- REST API endpoints, CLI commands, and Chat tools delegate to abilities for business logic
+
 Engine & execution
 
 - The engine executes flows via a four-action cycle (@since v0.8.0): `datamachine_run_flow_now` → `datamachine_execute_step` → `datamachine_schedule_next_step`. `datamachine_run_flow_later` handles deferred/recurring scheduling.

@@ -281,8 +281,9 @@ class ImageGenerationAbilities {
 	 * @return string|null Refined prompt on success, null on failure.
 	 */
 	public static function refine_prompt( string $raw_prompt, string $post_context = '', array $config = [] ): ?string {
-		$provider = PluginSettings::get( 'default_provider', '' );
-		$model    = PluginSettings::get( 'default_model', '' );
+		$system_defaults = PluginSettings::getAgentModel( 'system' );
+		$provider        = $system_defaults['provider'];
+		$model           = $system_defaults['model'];
 
 		if ( empty( $provider ) || empty( $model ) ) {
 			do_action(
@@ -382,10 +383,9 @@ class ImageGenerationAbilities {
 		}
 
 		// Must have a DM AI provider configured.
-		$provider = PluginSettings::get( 'default_provider', '' );
-		$model    = PluginSettings::get( 'default_model', '' );
+		$system_defaults = PluginSettings::getAgentModel( 'system' );
 
-		return ! empty( $provider ) && ! empty( $model );
+		return ! empty( $system_defaults['provider'] ) && ! empty( $system_defaults['model'] );
 	}
 
 	/**

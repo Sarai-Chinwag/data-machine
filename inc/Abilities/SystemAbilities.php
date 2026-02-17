@@ -446,8 +446,9 @@ class SystemAbilities {
 	}
 
 	private static function generateAITitle( string $first_user_message, ?string $first_assistant_response ): ?string {
-		$provider = PluginSettings::get('default_provider', '');
-		$model    = PluginSettings::get('default_model', '');
+		$chat_defaults = PluginSettings::getAgentModel( 'chat' );
+		$provider      = $chat_defaults['provider'];
+		$model         = $chat_defaults['model'];
 
 		if ( empty($provider) || empty($model) ) {
 			do_action(

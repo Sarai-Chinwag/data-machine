@@ -70,7 +70,8 @@ class AIStep extends Step {
 		$pipeline_step_id = $this->flow_step_config['pipeline_step_id'];
 
 		$pipeline_step_config = $this->engine->getPipelineStepConfig( $pipeline_step_id );
-		$provider_name        = $pipeline_step_config['provider'] ?? PluginSettings::get( 'default_provider', '' );
+		$pipeline_defaults    = PluginSettings::getAgentModel( 'pipeline' );
+		$provider_name        = $pipeline_step_config['provider'] ?? $pipeline_defaults['provider'];
 		if ( empty( $provider_name ) ) {
 			do_action(
 				'datamachine_fail_job',
@@ -175,7 +176,8 @@ class AIStep extends Step {
 		$engine_data     = $this->engine->all();
 		$available_tools = ToolExecutor::getAvailableTools( $previous_step_config, $next_step_config, $pipeline_step_id, $engine_data );
 
-		$provider_name = $pipeline_step_config['provider'] ?? $settings['default_provider'] ?? '';
+		$pipeline_agent_defaults = PluginSettings::getAgentModel( 'pipeline' );
+		$provider_name           = $pipeline_step_config['provider'] ?? $pipeline_agent_defaults['provider'];
 
 		// Execute conversation loop
 		$loop        = new AIConversationLoop();
@@ -183,7 +185,7 @@ class AIStep extends Step {
 			$messages,
 			$available_tools,
 			$provider_name,
-			$pipeline_step_config['model'] ?? $settings['default_model'] ?? '',
+			$pipeline_step_config['model'] ?? $pipeline_agent_defaults['model'],
 			AgentType::PIPELINE,
 			$payload,
 			$max_turns

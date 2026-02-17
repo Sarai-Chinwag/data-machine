@@ -288,8 +288,9 @@ class Chat {
 		$prompt  = sanitize_textarea_field( wp_unslash( $request->get_param( 'prompt' ) ?? '' ) );
 		$context = $request->get_param( 'context' ) ?? array();
 
-		$provider = PluginSettings::get( 'default_provider', '' );
-		$model    = PluginSettings::get( 'default_model', '' );
+		$agent_config = PluginSettings::getAgentModel( 'chat' );
+		$provider     = $agent_config['provider'];
+		$model        = $agent_config['model'];
 
 		if ( empty( $provider ) || empty( $model ) ) {
 			return new WP_Error(
@@ -548,11 +549,14 @@ class Chat {
 		$provider = $request->get_param( 'provider' );
 		$model    = $request->get_param( 'model' );
 
-		if ( empty( $provider ) ) {
-			$provider = PluginSettings::get( 'default_provider', '' );
-		}
-		if ( empty( $model ) ) {
-			$model = PluginSettings::get( 'default_model', '' );
+		if ( empty( $provider ) || empty( $model ) ) {
+			$agent_config = PluginSettings::getAgentModel( 'chat' );
+			if ( empty( $provider ) ) {
+				$provider = $agent_config['provider'];
+			}
+			if ( empty( $model ) ) {
+				$model = $agent_config['model'];
+			}
 		}
 
 		$provider = sanitize_text_field( $provider );
@@ -805,8 +809,9 @@ class Chat {
 		}
 
 		$messages             = $session['messages'] ?? array();
-		$provider             = $session['provider'] ?? PluginSettings::get( 'default_provider', '' );
-		$model                = $session['model'] ?? PluginSettings::get( 'default_model', '' );
+		$chat_defaults        = PluginSettings::getAgentModel( 'chat' );
+		$provider             = $session['provider'] ?? $chat_defaults['provider'];
+		$model                = $session['model'] ?? $chat_defaults['model'];
 		$message_count_before = count( $messages );
 		$selected_pipeline_id = $metadata['selected_pipeline_id'] ?? null;
 

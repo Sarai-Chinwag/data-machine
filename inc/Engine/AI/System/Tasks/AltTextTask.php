@@ -55,8 +55,9 @@ class AltTextTask extends SystemTask {
 			return;
 		}
 
-		$provider = PluginSettings::get( 'default_provider', '' );
-		$model    = PluginSettings::get( 'default_model', '' );
+		$system_defaults = PluginSettings::getAgentModel( 'system' );
+		$provider        = $system_defaults['provider'];
+		$model           = $system_defaults['model'];
 
 		if ( empty( $provider ) || empty( $model ) ) {
 			$this->failJob( $jobId, 'No default AI provider/model configured' );

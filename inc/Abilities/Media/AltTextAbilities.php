@@ -144,8 +144,9 @@ class AltTextAbilities {
 		$post_id       = absint( $input['post_id'] ?? 0 );
 		$force         = ! empty( $input['force'] );
 
-		$provider = PluginSettings::get( 'default_provider', '' );
-		$model    = PluginSettings::get( 'default_model', '' );
+		$system_defaults = PluginSettings::getAgentModel( 'system' );
+		$provider        = $system_defaults['provider'];
+		$model           = $system_defaults['model'];
 
 		if ( empty( $provider ) || empty( $model ) ) {
 			return array(
@@ -327,8 +328,9 @@ class AltTextAbilities {
 			return;
 		}
 
-		$provider = PluginSettings::get( 'default_provider', '' );
-		$model    = PluginSettings::get( 'default_model', '' );
+		$system_defaults = PluginSettings::getAgentModel( 'system' );
+		$provider        = $system_defaults['provider'];
+		$model           = $system_defaults['model'];
 
 		if ( empty( $provider ) || empty( $model ) ) {
 			return;

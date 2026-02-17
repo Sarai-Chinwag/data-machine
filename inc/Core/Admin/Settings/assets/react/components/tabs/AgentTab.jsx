@@ -29,6 +29,7 @@ import SettingsSaveBar, {
  * External dependencies
  */
 import ProviderModelSelector from '@shared/components/ai/ProviderModelSelector';
+import { useProviders } from '@shared/queries/providers';
 
 const SOUL_SECTIONS = [
 	{
@@ -80,12 +81,14 @@ const DEFAULTS = {
 	global_system_prompt: '',
 	default_provider: '',
 	default_model: '',
+	agent_models: {},
 	site_context_enabled: false,
 	max_turns: 12,
 };
 
 const AgentTab = () => {
 	const { data, isLoading, error } = useSettings();
+	const { data: providersData } = useProviders();
 	const updateMutation = useUpdateSettings();
 	const [ openToolId, setOpenToolId ] = useState( null );
 	const [ pingSecret, setPingSecret ] = useState( '' );
@@ -160,6 +163,7 @@ const AgentTab = () => {
 					data.settings.global_system_prompt || '',
 				default_provider: data.settings.default_provider || '',
 				default_model: data.settings.default_model || '',
+				agent_models: data.settings.agent_models || {},
 				site_context_enabled:
 					data.settings.site_context_enabled ?? false,
 				max_turns: data.settings.max_turns ?? 12,
@@ -442,17 +446,122 @@ const AgentTab = () => {
 										updateField( 'default_model', model )
 									}
 									applyDefaults={ false }
-									providerLabel="Default AI Provider"
-									modelLabel="Default AI Model"
+									providerLabel="Global Default Provider"
+									modelLabel="Global Default Model"
 								/>
 							</div>
 							<p className="description">
-								Set the default AI provider and model for new AI
-								steps and chat requests. These can be overridden
-								on a per-step or per-request basis.
+								Fallback provider and model used when no
+								agent-specific override is set below.
 							</p>
 						</td>
 					</tr>
+
+					{ ( providersData?.agent_types || [] ).length > 0 && (
+						<tr>
+							<th scope="row">
+								Per-Agent Model Overrides
+							</th>
+							<td>
+								<p
+									className="description"
+									style={ {
+										marginTop: 0,
+										marginBottom: '16px',
+									} }
+								>
+									Assign different providers and models to
+									each agent type. Leave empty to use the
+									global default above.
+								</p>
+								{ ( providersData?.agent_types || [] ).map(
+									( agentType ) => {
+										const agentConfig =
+											form.data.agent_models?.[
+												agentType.id
+											] || {};
+										return (
+											<div
+												key={ agentType.id }
+												className="datamachine-agent-model-override"
+												style={ {
+													marginBottom: '20px',
+													paddingBottom: '16px',
+													borderBottom:
+														'1px solid #e0e0e0',
+												} }
+											>
+												<h4
+													style={ {
+														margin: '0 0 4px',
+													} }
+												>
+													{ agentType.label }
+												</h4>
+												<p
+													className="description"
+													style={ {
+														marginTop: 0,
+														marginBottom: '8px',
+													} }
+												>
+													{
+														agentType.description
+													}
+												</p>
+												<ProviderModelSelector
+													provider={
+														agentConfig.provider ||
+														''
+													}
+													model={
+														agentConfig.model ||
+														''
+													}
+													onProviderChange={ (
+														provider
+													) => {
+														form.updateData( {
+															agent_models: {
+																...form.data
+																	.agent_models,
+																[ agentType.id ]:
+																	{
+																		...agentConfig,
+																		provider,
+																		model: '',
+																	},
+															},
+														} );
+														save.markChanged();
+													} }
+													onModelChange={ (
+														model
+													) => {
+														form.updateData( {
+															agent_models: {
+																...form.data
+																	.agent_models,
+																[ agentType.id ]:
+																	{
+																		...agentConfig,
+																		model,
+																	},
+															},
+														} );
+														save.markChanged();
+													} }
+													applyDefaults={ false }
+													providerLabel="Provider"
+													modelLabel="Model"
+												/>
+											</div>
+										);
+									}
+								) }
+							</td>
+						</tr>
+					) }
 
 					<tr>
 						<th scope="row">Provide site context to agents</th>

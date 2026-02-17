@@ -113,6 +113,10 @@ class SettingsAbilities {
 						'site_context_enabled'        => array( 'type' => 'boolean' ),
 						'default_provider'            => array( 'type' => 'string' ),
 						'default_model'               => array( 'type' => 'string' ),
+						'agent_models'                => array(
+							'type'        => 'object',
+							'description' => 'Per-agent-type provider/model overrides keyed by agent type id',
+						),
 						'max_turns'                   => array( 'type' => 'integer' ),
 						'disabled_tools'              => array( 'type' => 'object' ),
 						'ai_provider_keys'            => array( 'type' => 'object' ),
@@ -362,6 +366,7 @@ class SettingsAbilities {
 				'site_context_enabled'        => $settings['site_context_enabled'] ?? false,
 				'default_provider'            => $settings['default_provider'] ?? '',
 				'default_model'               => $settings['default_model'] ?? '',
+				'agent_models'                => $settings['agent_models'] ?? array(),
 				'max_turns'                   => $settings['max_turns'] ?? 12,
 				'disabled_tools'              => $settings['disabled_tools'] ?? array(),
 				'ai_provider_keys'            => $masked_keys,
@@ -440,6 +445,20 @@ class SettingsAbilities {
 
 		if ( isset( $input['default_model'] ) ) {
 			$all_settings['default_model'] = sanitize_text_field( $input['default_model'] );
+		}
+
+		if ( isset( $input['agent_models'] ) && is_array( $input['agent_models'] ) ) {
+			$valid_agent_ids = array_column( PluginSettings::getAgentTypes(), 'id' );
+			$agent_models    = array();
+			foreach ( $input['agent_models'] as $agent_type => $config ) {
+				if ( in_array( $agent_type, $valid_agent_ids, true ) && is_array( $config ) ) {
+					$agent_models[ $agent_type ] = array(
+						'provider' => sanitize_text_field( $config['provider'] ?? '' ),
+						'model'    => sanitize_text_field( $config['model'] ?? '' ),
+					);
+				}
+			}
+			$all_settings['agent_models'] = $agent_models;
 		}
 
 		if ( isset( $input['max_turns'] ) ) {

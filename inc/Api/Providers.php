@@ -86,12 +86,17 @@ class Providers {
 				'model'    => PluginSettings::get( 'default_model', '' ),
 			);
 
+			$agent_types  = PluginSettings::getAgentTypes();
+			$agent_models = PluginSettings::get( 'agent_models', array() );
+
 			return rest_ensure_response(
 				array(
 					'success' => true,
 					'data'    => array(
-						'providers' => $providers,
-						'defaults'  => $defaults,
+						'providers'    => $providers,
+						'defaults'     => $defaults,
+						'agent_types'  => $agent_types,
+						'agent_models' => $agent_models,
 					),
 				)
 			);

@@ -28,45 +28,10 @@ import ChatMessages from './ChatMessages';
 import ChatInput from './ChatInput';
 import ChatSessionSwitcher from './ChatSessionSwitcher';
 import ChatSessionList from './ChatSessionList';
+import { formatChatAsMarkdown } from '../../utils/formatters';
 
 function generateRequestId() {
-	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace( /[xy]/g, ( c ) => {
-		const r = ( Math.random() * 16 ) | 0;
-		const v = c === 'x' ? r : ( r & 0x3 ) | 0x8;
-		return v.toString( 16 );
-	} );
-}
-
-function formatChatAsMarkdown( messages ) {
-	return messages
-		.filter( ( msg ) => {
-			const type = msg.metadata?.type;
-			// Exclude assistant tool_call messages (action info is in tool_result content)
-			if ( msg.role === 'assistant' && type === 'tool_call' ) {
-				return false;
-			}
-			return msg.role === 'user' || msg.role === 'assistant';
-		} )
-		.map( ( msg ) => {
-			const type = msg.metadata?.type;
-			const timestamp = msg.metadata?.timestamp
-				? new Date( msg.metadata.timestamp ).toLocaleString()
-				: '';
-			const timestampStr = timestamp ? ` (${ timestamp })` : '';
-
-			// Tool results: clearly labeled (these have role 'user' but aren't user messages)
-			if ( type === 'tool_result' ) {
-				const toolName = msg.metadata?.tool_name || 'Tool';
-				const success = msg.metadata?.success;
-				const status = success === false ? 'FAILED' : 'SUCCESS';
-				return `**Tool Response (${ toolName } - ${ status })${ timestampStr }:**\n${ msg.content }`;
-			}
-
-			// Regular user/assistant messages
-			const role = msg.role === 'user' ? 'User' : 'Assistant';
-			return `**${ role }${ timestampStr }:**\n${ msg.content }`;
-		} )
-		.join( '\n\n---\n\n' );
+	return crypto.randomUUID();
 }
 
 export default function ChatSidebar() {

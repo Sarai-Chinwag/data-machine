@@ -404,5 +404,3 @@ class QueueValidator extends BaseTool {
 	}
 }
 
-// Self-register the tool.
-new QueueValidator();

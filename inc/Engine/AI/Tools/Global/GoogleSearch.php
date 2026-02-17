@@ -247,5 +247,3 @@ class GoogleSearch extends BaseTool {
 	}
 }
 
-// Self-register the tool
-new GoogleSearch();

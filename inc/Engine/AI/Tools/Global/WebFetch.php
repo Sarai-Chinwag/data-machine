@@ -163,5 +163,3 @@ class WebFetch extends BaseTool {
 	}
 }
 
-// Self-register the tool
-new WebFetch();

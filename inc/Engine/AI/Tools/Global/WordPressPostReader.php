@@ -148,5 +148,3 @@ class WordPressPostReader extends BaseTool {
 	}
 }
 
-// Self-register the tool
-new WordPressPostReader();

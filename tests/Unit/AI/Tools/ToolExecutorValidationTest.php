@@ -8,6 +8,7 @@
 namespace DataMachine\Tests\Unit\AI\Tools;
 
 use DataMachine\Engine\AI\Tools\ToolExecutor;
+use DataMachine\Engine\AI\Tools\ToolManager;
 use WP_UnitTestCase;
 use ReflectionClass;
 
@@ -238,7 +239,8 @@ class ToolExecutorValidationTest extends WP_UnitTestCase {
 			),
 		);
 
-		$resolved = $this->invokeResolveMethod( $tools );
+		$tool_manager = new ToolManager();
+		$resolved     = $tool_manager->resolveAllTools( $tools );
 
 		$this->assertTrue( $callable_invoked, 'Callable should be invoked' );
 		$this->assertIsArray( $resolved['callable_tool'] );
@@ -252,7 +254,8 @@ class ToolExecutorValidationTest extends WP_UnitTestCase {
 			'invalid_tool' => 'not an array or callable',
 		);
 
-		$resolved = $this->invokeResolveMethod( $tools );
+		$tool_manager = new ToolManager();
+		$resolved     = $tool_manager->resolveAllTools( $tools );
 
 		$this->assertIsArray( $resolved['invalid_tool'] );
 		$this->assertEmpty( $resolved['invalid_tool'] );
@@ -266,13 +269,6 @@ class ToolExecutorValidationTest extends WP_UnitTestCase {
 		return $method->invoke( null, $tool_parameters, $tool_def );
 	}
 
-	private function invokeResolveMethod( array $tools ): array {
-		$reflection = new ReflectionClass( ToolExecutor::class );
-		$method     = $reflection->getMethod( 'resolveTools' );
-		$method->setAccessible( true );
-
-		return $method->invoke( null, $tools );
-	}
 }
 
 class TestToolHandler {

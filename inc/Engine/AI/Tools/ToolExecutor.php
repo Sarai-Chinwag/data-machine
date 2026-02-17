@@ -35,7 +35,7 @@ class ToolExecutor {
 
 			if ( $prev_handler_slug ) {
 				$prev_tools         = apply_filters( 'chubes_ai_tools', array(), $prev_handler_slug, $prev_handler_config, $engine_data );
-				$prev_tools         = self::resolveTools( $prev_tools );
+				$prev_tools         = $tool_manager->resolveAllTools( $prev_tools );
 				$allowed_prev_tools = self::getAllowedTools( $prev_tools, $prev_handler_slug, $current_pipeline_step_id, $tool_manager );
 				$available_tools    = array_merge( $available_tools, $allowed_prev_tools );
 			}
@@ -47,7 +47,7 @@ class ToolExecutor {
 
 			if ( $next_handler_slug ) {
 				$next_tools         = apply_filters( 'chubes_ai_tools', array(), $next_handler_slug, $next_handler_config, $engine_data );
-				$next_tools         = self::resolveTools( $next_tools );
+				$next_tools         = $tool_manager->resolveAllTools( $next_tools );
 				$allowed_next_tools = self::getAllowedTools( $next_tools, $next_handler_slug, $current_pipeline_step_id, $tool_manager );
 				$available_tools    = array_merge( $available_tools, $allowed_next_tools );
 			}
@@ -59,28 +59,6 @@ class ToolExecutor {
 		$available_tools      = array_merge( $available_tools, $allowed_global_tools );
 
 		return array_unique( $available_tools, SORT_REGULAR );
-	}
-
-	/**
-	 * Resolve tool definitions from callables to arrays.
-	 *
-	 * Tool definitions may be registered as callables for lazy evaluation
-	 * (e.g., to defer translations until after init). This method invokes
-	 * callables and returns the resolved array definitions.
-	 *
-	 * @param array $tools Raw tools array (may contain callables)
-	 * @return array Resolved tools array with all definitions as arrays
-	 */
-	private static function resolveTools( array $tools ): array {
-		$resolved = array();
-		foreach ( $tools as $tool_id => $definition ) {
-			if ( is_callable( $definition ) ) {
-				$resolved[ $tool_id ] = $definition();
-			} else {
-				$resolved[ $tool_id ] = is_array( $definition ) ? $definition : array();
-			}
-		}
-		return $resolved;
 	}
 
 	/**

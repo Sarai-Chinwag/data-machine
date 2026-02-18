@@ -204,10 +204,9 @@ class ReplacePostBlocksAbility {
 				continue;
 			}
 
-			$old_html    = $blocks[ $block_index ]['innerHTML'] ?? '';
-			$sanitized   = wp_kses_post( $new_content );
+			$old_html = $blocks[ $block_index ]['innerHTML'] ?? '';
 
-			$blocks[ $block_index ]['innerHTML'] = $sanitized;
+			$blocks[ $block_index ]['innerHTML'] = $new_content;
 
 			// Update innerContent to match.
 			if ( ! empty( $blocks[ $block_index ]['innerContent'] ) ) {
@@ -216,7 +215,7 @@ class ReplacePostBlocksAbility {
 				$replaced_inner = false;
 				foreach ( $blocks[ $block_index ]['innerContent'] as $i => $content ) {
 					if ( is_string( $content ) && ! $replaced_inner ) {
-						$blocks[ $block_index ]['innerContent'][ $i ] = $sanitized;
+						$blocks[ $block_index ]['innerContent'][ $i ] = $new_content;
 						$replaced_inner = true;
 					}
 				}
@@ -226,7 +225,7 @@ class ReplacePostBlocksAbility {
 				'block_index'       => $block_index,
 				'block_name'        => $blocks[ $block_index ]['blockName'] ?? 'unknown',
 				'old_length'        => strlen( $old_html ),
-				'new_length'        => strlen( $sanitized ),
+				'new_length'        => strlen( $new_content ),
 				'success'           => true,
 			);
 		}
@@ -242,7 +241,7 @@ class ReplacePostBlocksAbility {
 			);
 		}
 
-		$new_content = serialize_blocks( $blocks );
+		$new_content = BlockSanitizer::sanitizeAndSerialize( $blocks );
 		$result      = wp_update_post(
 			array(
 				'ID'           => $post_id,

@@ -259,7 +259,7 @@ class EditPostBlocksAbility {
 			);
 		}
 
-		$new_content = self::sanitizeAndSerialize( $blocks );
+		$new_content = BlockSanitizer::sanitizeAndSerialize( $blocks );
 		$result      = wp_update_post(
 			array(
 				'ID'           => $post_id,
@@ -295,45 +295,4 @@ class EditPostBlocksAbility {
 		);
 	}
 
-	/**
-	 * Sanitize block innerHTML and serialize.
-	 *
-	 * @param array $blocks Parsed blocks array.
-	 * @return string Serialized block content.
-	 */
-	private static function sanitizeAndSerialize( array $blocks ): string {
-		$sanitized = array_map(
-			function ( $block ) {
-				if ( isset( $block['innerHTML'] ) && '' !== $block['innerHTML'] ) {
-					$block['innerHTML'] = wp_kses_post( $block['innerHTML'] );
-				}
-				if ( ! empty( $block['innerContent'] ) ) {
-					$block['innerContent'] = array_map(
-						function ( $content ) {
-							if ( is_string( $content ) && '' !== $content ) {
-								return wp_kses_post( $content );
-							}
-							return $content;
-						},
-						$block['innerContent']
-					);
-				}
-				if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
-					$block['innerBlocks'] = array_map(
-						function ( $inner ) {
-							if ( isset( $inner['innerHTML'] ) && '' !== $inner['innerHTML'] ) {
-								$inner['innerHTML'] = wp_kses_post( $inner['innerHTML'] );
-							}
-							return $inner;
-						},
-						$block['innerBlocks']
-					);
-				}
-				return $block;
-			},
-			$blocks
-		);
-
-		return serialize_blocks( $sanitized );
-	}
 }

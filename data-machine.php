@@ -136,6 +136,7 @@ function datamachine_run_datamachine_plugin() {
 	require_once __DIR__ . '/inc/Abilities/AgentPingAbilities.php';
 	require_once __DIR__ . '/inc/Abilities/TaxonomyAbilities.php';
 	require_once __DIR__ . '/inc/Abilities/InternalLinkingAbilities.php';
+	require_once __DIR__ . '/inc/Abilities/Content/BlockSanitizer.php';
 	require_once __DIR__ . '/inc/Abilities/Content/GetPostBlocksAbility.php';
 	require_once __DIR__ . '/inc/Abilities/Content/EditPostBlocksAbility.php';
 	require_once __DIR__ . '/inc/Abilities/Content/ReplacePostBlocksAbility.php';

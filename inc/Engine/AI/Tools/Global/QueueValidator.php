@@ -62,6 +62,7 @@ class QueueValidator extends BaseTool {
 
 		$topic     = sanitize_text_field( $parameters['topic'] );
 		$threshold = $this->resolveThreshold( $parameters );
+		$post_type = ! empty( $parameters['post_type'] ) ? sanitize_text_field( $parameters['post_type'] ) : 'post';
 
 		do_action(
 			'datamachine_log',
@@ -70,11 +71,12 @@ class QueueValidator extends BaseTool {
 			array(
 				'topic'     => $topic,
 				'threshold' => $threshold,
+				'post_type' => $post_type,
 			)
 		);
 
 		// Check 1: Existing published posts.
-		$post_match = $this->checkPublishedPosts( $topic, $threshold );
+		$post_match = $this->checkPublishedPosts( $topic, $threshold, $post_type );
 
 		if ( null !== $post_match ) {
 			do_action(
@@ -177,9 +179,10 @@ class QueueValidator extends BaseTool {
 	 *
 	 * @param string $topic     Topic to check.
 	 * @param float  $threshold Similarity threshold.
+	 * @param string $post_type Post type to check against.
 	 * @return array|null Best match above threshold, or null.
 	 */
-	private function checkPublishedPosts( string $topic, float $threshold ): ?array {
+	private function checkPublishedPosts( string $topic, float $threshold, string $post_type = 'post' ): ?array {
 		$search_word = $this->getBestSearchWord( $topic );
 
 		if ( empty( $search_word ) ) {
@@ -189,7 +192,7 @@ class QueueValidator extends BaseTool {
 		$query = new \WP_Query(
 			array(
 				's'              => $search_word,
-				'post_type'      => 'post',
+				'post_type'      => $post_type,
 				'post_status'    => 'publish',
 				'posts_per_page' => 50,
 				'fields'         => 'ids',
@@ -383,6 +386,11 @@ class QueueValidator extends BaseTool {
 					'type'        => 'string',
 					'required'    => true,
 					'description' => 'Topic or title to validate against existing content and queue items.',
+				),
+				'post_type'            => array(
+					'type'        => 'string',
+					'required'    => false,
+					'description' => 'WordPress post type to check against (default: "post"). Use "recipe" for recipe validation, or any registered custom post type.',
 				),
 				'flow_id'              => array(
 					'type'        => 'integer',

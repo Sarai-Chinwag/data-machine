@@ -1,12 +1,12 @@
 ---
 name: data-machine
-description: "Self-scheduling execution layer for autonomous task orchestration. Use for queuing tasks, chaining pipeline executions, scheduling recurring work, and 24/7 autonomous operation via Agent Ping webhooks."
-compatibility: "WordPress 6.9+ with Data Machine plugin. WP-CLI required for queue management."
+description: "WordPress-native AI content automation platform with memory system, pipeline execution, abilities API, and agent tools. Use for automated workflows, self-scheduling, queued task progression, memory-driven AI context, and 24/7 autonomous operation."
+compatibility: "WordPress 6.9+ with Data Machine plugin. WP-CLI required for CLI operations."
 ---
 
 # Data Machine Skill
 
-**A self-scheduling execution layer for AI agents.** Not just content automation — it's how agents schedule themselves to achieve goals autonomously.
+**A WordPress-native AI automation platform.** Content generation, publishing, memory, scheduling, and agent tools — all inside WordPress. Designed with AI agents as primary users.
 
 ## When to Use This Skill
 
@@ -15,18 +15,21 @@ Use this skill when:
 - Creating self-scheduling patterns (reminders, recurring tasks)
 - Building multi-phase projects with queued task progression
 - Configuring Agent Ping webhooks to trigger external agents
+- Managing agent memory files for persistent AI context
+- Working with block-level content editing
 
 ---
 
 ## Core Philosophy
 
-Data Machine is designed with AI agents as primary users. It functions as a **reminder system + task manager + workflow executor** all in one.
+Data Machine functions as a **reminder system + task manager + workflow executor + memory system** all in one.
 
-### Three Key Concepts
+### Key Concepts
 
 1. **Flows operate on schedules** — Configure "ping me at X time to do Y"
-2. **Step-level prompt queues** — Each ping can be a different task instruction
+2. **Step-level prompt queues** — Each execution can pop a different task instruction
 3. **Multiple purpose-specific flows** — Separate flows for separate concerns
+4. **Agent memory** — Persistent files that inject context into AI calls
 
 ### Mental Model
 
@@ -35,6 +38,7 @@ Data Machine is designed with AI agents as primary users. It functions as a **re
 | **Reminder System** | Flows run on schedules (daily, hourly, cron) and ping the agent |
 | **Task Manager** | Queues hold task backlog; each run pops the next task |
 | **Workflow Executor** | Pipeline steps execute work (AI generation, publishing, API calls) |
+| **Memory System** | Agent files provide persistent context across all executions |
 
 ---
 
@@ -61,6 +65,22 @@ Pipeline (template) → Flow (instance) → Job (execution)
 | `agent_ping` | Webhook to external agents | **Yes** |
 | `webhook_gate` | Pause pipeline until external webhook fires | No |
 
+### 7-Tier Directive System
+
+System prompts are injected in priority order into every AI call:
+
+| Priority | Directive | Scope |
+|----------|-----------|-------|
+| 10 | Plugin Core | Hardcoded agent identity |
+| 20 | Agent SOUL.md | Global AI personality (from agent memory) |
+| 25 | Pipeline Memory Files | Per-pipeline selected memory files |
+| 30 | Pipeline System Prompt | Per-pipeline AI step instructions |
+| 35 | Pipeline Context Files | Uploaded reference materials |
+| 40 | Tool Definitions | Available tools and workflow context |
+| 50 | Site Context | WordPress metadata |
+
+**Key:** SOUL.md is always injected at Priority 20. Other memory files are selectable per-pipeline via the admin UI.
+
 ### Scheduling Options
 
 Configure via `scheduling_config` in the flow:
@@ -74,31 +94,31 @@ Configure via `scheduling_config` in the flow:
 
 ---
 
-## Working with Flows
+## Memory System
 
-### List Flows
+Data Machine has file-based agent memory in `{wp-content}/uploads/datamachine-files/agent/`. Files here provide persistent context to AI agents across all executions.
 
-```bash
-wp datamachine flows list
+### How It Works
+
+1. Files live in the agent directory (managed via Admin UI or REST API)
+2. **SOUL.md** is always injected at Priority 20 into every AI call
+3. Other files can be selected per-pipeline as memory file references (Priority 25)
+4. Selected files are injected as system context — the AI sees them every execution
+
+### REST API
+
+```
+GET    /datamachine/v1/files/agent           — List all agent files
+GET    /datamachine/v1/files/agent/{filename} — Read file content
+PUT    /datamachine/v1/files/agent/{filename} — Write/update file (raw body)
+DELETE /datamachine/v1/files/agent/{filename} — Delete file
 ```
 
-### Get Flow Details
+### Pipeline Memory File Selection
 
-```bash
-wp datamachine flows get <flow_id>
-```
+Each pipeline can select which agent memory files to include in its AI context. Configure via the "Agent Memory Files" section in the pipeline settings UI. SOUL.md is excluded from the picker since it's always injected.
 
-### Run a Flow Manually
-
-```bash
-wp datamachine flows run <flow_id>
-```
-
-### Check Job Status
-
-```bash
-wp datamachine jobs list --limit=10
-```
+This enables different pipelines to see different context — an ideation pipeline might reference a strategy doc, while a generation pipeline might reference style guidelines.
 
 ---
 
@@ -106,19 +126,15 @@ wp datamachine jobs list --limit=10
 
 Both AI and Agent Ping steps support queues via `QueueableTrait`. If the configured prompt is empty and `queue_enabled` is true, the step pops from its queue.
 
-This enables **varied task instructions** per execution — not the same prompt every time.
-
 ### Queue Management
 
 ```bash
-# Add to queue
 wp datamachine flows queue add <flow_id> "Task instruction here"
-
-# List queue contents
 wp datamachine flows queue list <flow_id>
-
-# Clear queue
 wp datamachine flows queue clear <flow_id>
+wp datamachine flows queue remove <flow_id> <index>
+wp datamachine flows queue update <flow_id> <index> "new prompt text"
+wp datamachine flows queue move <flow_id> <from_index> <to_index>
 ```
 
 ### Chaining Pattern
@@ -160,10 +176,7 @@ Flow: Coding Tasks (manual, queue-driven)
   → Agent Ping (pops from queue): specific coding task instructions
 ```
 
-Each flow has its own:
-- **Schedule**: When it runs
-- **Queue**: Task backlog specific to that workflow
-- **Purpose**: Single responsibility, clear scope
+Each flow has its own schedule, queue, and single-responsibility purpose.
 
 ---
 
@@ -179,10 +192,7 @@ Agent Ping steps send webhooks to external agent frameworks (OpenClaw, LangChain
 
 ### Webhook Payload
 
-The ping includes:
-- Flow and job context
-- The prompt (from config or queue)
-- Any data from previous steps
+The ping includes flow/job context, the prompt (from config or queue), and any data from previous steps.
 
 **Note**: Data Machine is agent-agnostic. It sends webhooks — whatever listens on the URL handles the prompt.
 
@@ -231,7 +241,6 @@ The tool marks the item as processed and sets job status to `agent_skipped`.
 Search site content for duplicate detection:
 
 ```bash
-# Search by title
 local_search(query="topic name", title_only=true)
 ```
 
@@ -249,15 +258,15 @@ When the step executes:
 3. When the webhook URL receives a POST, the pipeline resumes from the next step with the webhook payload injected as data packets
 4. If the webhook is not received before the configured timeout, the job fails with `webhook_gate_timeout`
 
-Use this for integrations where an external system must complete work before the pipeline continues (e.g., waiting for a third-party approval or processing result).
+Use this for integrations where an external system must complete work before the pipeline continues.
 
 ---
 
 ## Multi-Handler Publish Steps
 
-Publish steps support multiple handlers in a single step via `handler_slugs` (array) and `handler_configs` (keyed by slug). This enables publishing to multiple platforms in one step — for example, WordPress and Twitter simultaneously.
+Publish steps support multiple handlers in a single step via `handler_slugs` (array) and `handler_configs` (keyed by slug). This enables publishing to multiple platforms in one step.
 
-Configuration uses the `handler_slugs` array format:
+Configuration:
 - `handler_slugs`: Array of handler slugs to execute (e.g., `["wordpress", "twitter"]`)
 - `handler_configs`: Per-handler configuration keyed by slug
 
@@ -310,6 +319,45 @@ When using `insert` mode, the `position` parameter controls where the image is p
 
 ---
 
+## Block Content Editing
+
+*Since v0.28.0.* Abilities and CLI for block-level content manipulation with automatic sanitization.
+
+### Abilities
+
+- **GetPostBlocks** — Parse and list Gutenberg blocks with optional filtering by type or search text
+- **EditPostBlocks** — Find/replace within specific blocks by index
+- **ReplacePostBlocks** — Replace entire block innerHTML by index
+
+All write operations use BlockSanitizer to strip dangerous tags/attributes while preserving safe HTML.
+
+### CLI
+
+```bash
+# List blocks in a post
+wp datamachine blocks list <post_id> [--type=<block_type>] [--search=<text>] [--format=<table|json|csv>]
+
+# Edit block content via find/replace
+wp datamachine blocks edit <post_id> <block_index> --find="old text" --replace="new text" [--dry-run]
+
+# Replace entire block innerHTML
+wp datamachine blocks replace <post_id> <block_index> --content="<p>New content</p>"
+```
+
+---
+
+## Chat Agent
+
+Data Machine includes a conversational chat interface in the admin UI with:
+- Session history and session switching
+- Full tool/ability access (same as pipeline agents)
+- The complete 7-tier directive stack
+- Per-agent model configuration
+
+Use the chat agent for ad-hoc tasks, testing prompts, or direct interaction with DM's capabilities.
+
+---
+
 ## CLI Reference
 
 **Note:** If running WP-CLI as root, add `--allow-root` to commands.
@@ -336,7 +384,27 @@ wp datamachine flows queue move <flow_id> <from_index> <to_index>
 # Jobs
 wp datamachine jobs list [--status=<status>] [--limit=<n>]
 wp datamachine jobs get <job_id>
+wp datamachine jobs summary
+wp datamachine jobs fail <job_id> [--reason=<reason>]
+wp datamachine jobs retry <job_id> [--force]
+wp datamachine jobs recover-stuck [--dry-run] [--timeout=2]
+
+# Logs
+wp datamachine logs read <agent_type> [--job-id=N] [--limit=50]
+wp datamachine logs info [<agent_type>]
+wp datamachine logs clear <agent_type|all> --yes
+
+# Pipelines
+wp datamachine pipelines list
+wp datamachine pipeline get <pipeline_id>
+
+# Blocks
+wp datamachine blocks list <post_id> [--type=<block_type>] [--search=<text>] [--format=<format>]
+wp datamachine blocks edit <post_id> <block_index> --find="<text>" --replace="<text>" [--dry-run]
+wp datamachine blocks replace <post_id> <block_index> --content="<html>"
 ```
+
+Agent types for logs: `pipeline`, `system`, `chat`
 
 ---
 
@@ -345,7 +413,7 @@ wp datamachine jobs get <job_id>
 ### Check Logs
 
 ```bash
-tail -f wp-content/uploads/datamachine-logs/datamachine-pipeline.log
+tail -f {wp-content}/uploads/datamachine-logs/datamachine-pipeline.log
 ```
 
 ### Failed Jobs
@@ -357,10 +425,7 @@ wp datamachine jobs list --status=failed
 ### Scheduled Actions
 
 ```bash
-# List pending actions
 wp action-scheduler run --hooks=datamachine --force
-
-# Check cron
 wp cron event list
 ```
 
@@ -399,6 +464,15 @@ Queue tasks in sequence:
 Flow runs daily, pops next phase, agent executes and queues follow-up if needed.
 ```
 
+### Memory-Driven Ideation
+
+```
+1. Store strategy docs and performance data as agent memory files
+2. Configure ideation pipeline to include those memory files
+3. AI generates ideas informed by strategy + what's working
+4. No external agent needed — DM handles it internally
+```
+
 ---
 
 ## Code Locations
@@ -408,11 +482,11 @@ For contributors working on Data Machine itself:
 - Steps: `inc/Core/Steps/`
 - Abilities: `inc/Abilities/`
 - CLI: `inc/Cli/`
+- Directives: `inc/Engine/AI/Directives/` and `inc/Core/Steps/AI/Directives/`
+- Memory/Files: `inc/Core/FilesRepository/`
 - Taxonomy Handler: `inc/Core/WordPress/TaxonomyHandler.php`
 - Queueable Trait: `inc/Core/Steps/QueueableTrait.php`
-- React UI: `inc/Core/Admin/Pages/Pipelines/assets/react/`
-
----
+- React UI: `inc/Core/Admin/Pages/`
 
 ---
 
@@ -420,7 +494,7 @@ For contributors working on Data Machine itself:
 
 **Data Machine is in active development.** It works well and is used in production, but it's not yet available on WordPress.org — no auto-updates.
 
-### Installation Source
+### Installation
 
 Data Machine is installed from GitHub:
 ```
@@ -428,8 +502,6 @@ https://github.com/Extra-Chill/data-machine
 ```
 
 ### Updating
-
-To get the latest version:
 
 ```bash
 cd /path/to/wp-content/plugins/data-machine
@@ -440,34 +512,13 @@ Check for breaking changes in the CHANGELOG before updating production sites.
 
 ### Reporting Issues
 
-If you encounter bugs or unexpected behavior:
+If you encounter bugs: https://github.com/Extra-Chill/data-machine/issues
 
-1. Check existing issues: https://github.com/Extra-Chill/data-machine/issues
-2. Open a new issue with:
-   - What you were trying to do
-   - What happened instead
-   - Steps to reproduce
-   - Relevant logs (`wp-content/uploads/datamachine-logs/`)
-
-Agents filing clear, detailed issues are incredibly helpful for development.
+Include what you were trying to do, what happened, steps to reproduce, and relevant logs.
 
 ### Contributing
 
-PRs are welcome! If you've fixed a bug or added a feature:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes (follow existing code patterns)
-4. Submit a PR with clear description
-
-**For agents**: If you hit a limitation or bug, consider fixing it and submitting a PR rather than working around it. Permanent fixes beat workarounds.
-
-### Expectations
-
-- Features may change between versions
-- Some edge cases may not be handled yet
-- The maintainer (Extra Chill) is responsive to issues
-- This is production-ready but evolving
+PRs are welcome. Fork, branch, make changes following existing patterns, submit a PR with clear description. If you hit a limitation, consider fixing it upstream rather than working around it.
 
 ---
 

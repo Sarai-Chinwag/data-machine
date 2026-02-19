@@ -2,6 +2,25 @@
 
 All notable changes to Data Machine will be documented in this file. Also viewable at: 
 
+## [0.28.0] - 2026-02-19
+
+### Added
+- Block content editing abilities — get, edit, replace Gutenberg blocks by index (GetPostBlocksAbility, EditPostBlocksAbility, ReplacePostBlocksAbility)
+- WP-CLI blocks command (wp dm blocks list|edit|replace)
+- Pinterest board selection — three modes: pre-selected, AI decides, category mapping
+- PinterestAbilities class with board sync, caching, and resolution
+- WP-CLI pinterest command (wp dm pinterest sync-boards|list-boards|status)
+- URL Inspection and Sitemaps endpoints for Google Search Console tool
+
+### Changed
+- Shared TabPanel styles across all admin pages (Agent, Logs, Settings)
+- InternalLinkingTask refactored to use block-level abilities for granular paragraph editing
+- Agent SOUL.md directive docs updated for 7-tier system
+
+### Fixed
+- Agent page response shape — query hooks now unwrap { success, data } responses
+- SOUL.md deletion hardening — FileAbilities now blocks deletion with error return
+
 ## [0.27.0] - 2026-02-18
 
 ### Added

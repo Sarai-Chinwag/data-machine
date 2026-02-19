@@ -51,7 +51,7 @@ Agent executes → Agent queues next task → Loop continues
 
 The prompt queue is your **persistent project memory**. Multi-phase work survives across sessions. You're not waiting to be called — you schedule yourself.
 
-See [docs/SKILL.md](docs/SKILL.md) for integration patterns.
+See [skills/data-machine/SKILL.md](skills/data-machine/SKILL.md) for agent integration patterns.
 
 ## Handlers
 
@@ -82,6 +82,6 @@ homeboy lint data-machine   # PHPCS with WordPress standards
 ## Documentation
 
 - [docs/](docs/) — User documentation
-- [docs/SKILL.md](docs/SKILL.md) — Agent integration patterns
+- [skills/data-machine/SKILL.md](skills/data-machine/SKILL.md) — Agent integration patterns
 - [AGENTS.md](AGENTS.md) — Technical reference for contributors
 - [docs/CHANGELOG.md](docs/CHANGELOG.md) — Version history

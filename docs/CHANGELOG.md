@@ -6,10 +6,10 @@ All notable changes to Data Machine will be documented in this file. Also viewab
 
 ### Added
 - Block content editing abilities — get, edit, replace Gutenberg blocks by index (GetPostBlocksAbility, EditPostBlocksAbility, ReplacePostBlocksAbility)
-- WP-CLI blocks command (wp dm blocks list|edit|replace)
+- WP-CLI blocks command (wp datamachine blocks list|edit|replace)
 - Pinterest board selection — three modes: pre-selected, AI decides, category mapping
 - PinterestAbilities class with board sync, caching, and resolution
-- WP-CLI pinterest command (wp dm pinterest sync-boards|list-boards|status)
+- WP-CLI pinterest command (wp datamachine pinterest sync-boards|list-boards|status)
 - URL Inspection and Sitemaps endpoints for Google Search Console tool
 
 ### Changed
